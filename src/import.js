@@ -49,21 +49,25 @@ function importDataManagement() {
         // Go through the available sheet list
         for (var i = 0; i < WISH_TALLY_NAME_OF_WISH_HISTORY.length; i++) {
           var bannerImportSheet = importSource.getSheetByName(WISH_TALLY_NAME_OF_WISH_HISTORY[i]);
-          
-          var numberOfRows = bannerImportSheet.getMaxRows()-1;
-          var range = bannerImportSheet.getRange(2, 1, numberOfRows, 2);
 
-          if (bannerImportSheet && numberOfRows > 0) {
-            var bannerSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_NAME_OF_WISH_HISTORY[i]);
+          if (bannerImportSheet) {
+            var numberOfRows = bannerImportSheet.getMaxRows()-1;
+            var range = bannerImportSheet.getRange(2, 1, numberOfRows, 2);
 
-            if (bannerSheet) {
-              bannerSheet.getRange(2, 1, numberOfRows, 2).setValues(range.getValues());
-              settingsSheet.getRange(rowOfStatusWishHistory+i, 5).setValue(IMPORT_STATUS_WISH_HISTORY_COMPLETE);
+            if (numberOfRows > 0) {
+              var bannerSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_NAME_OF_WISH_HISTORY[i]);
+
+              if (bannerSheet) {
+                bannerSheet.getRange(2, 1, numberOfRows, 2).setValues(range.getValues());
+                settingsSheet.getRange(rowOfStatusWishHistory+i, 5).setValue(IMPORT_STATUS_WISH_HISTORY_COMPLETE);
+              } else {
+                settingsSheet.getRange(rowOfStatusWishHistory+i, 5).setValue(IMPORT_STATUS_WISH_HISTORY_NOT_FOUND);
+              }
             } else {
-              settingsSheet.getRange(rowOfStatusWishHistory+i, 5).setValue(IMPORT_STATUS_WISH_HISTORY_NOT_FOUND);
+              settingsSheet.getRange(rowOfStatusWishHistory+i, 5).setValue(IMPORT_STATUS_WISH_HISTORY_EMPTY);
             }
           } else {
-            settingsSheet.getRange(rowOfStatusWishHistory+i, 5).setValue(IMPORT_STATUS_WISH_HISTORY_EMPTY);
+            settingsSheet.getRange(rowOfStatusWishHistory+i, 5).setValue(IMPORT_STATUS_WISH_HISTORY_NOT_FOUND);
           }
         }
         var sourceSettingsSheet = importSource.getSheetByName("Settings");
