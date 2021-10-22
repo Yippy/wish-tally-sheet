@@ -1,4 +1,5 @@
 var sheetSourceId = '1mTeEQs1nOViQ-_BVHkDSZgfKGsYiLATe1mFQxypZQWA';
+var nameOfWishHistorys = ["Character Event Wish History", "Permanent Wish History", "Weapon Event Wish History", "Novice Wish History"];
 
 function onOpen( ){
   var ui = SpreadsheetApp.getUi();
@@ -101,22 +102,56 @@ function addFormulaNoviceWishHistory() {
   addFormulaByWishHistoryName('Novice Wish History');
 }
 
+/**
+* Add Formula for selected Wish History sheet
+*/
+function addFormulaWishHistory() {
+  var sheetActive = SpreadsheetApp.getActiveSpreadsheet();
+  var wishHistoryName = sheetActive.getSheetName();
+  if (nameOfWishHistorys.indexOf(wishHistoryName) != -1) {
+    addFormulaByWishHistoryName(wishHistoryName);
+  } else {
+    var message = 'Sheet must be called "Character Event Wish History" or "Permanent Wish History" or "Weapon Event Wish History" or "Novice Wish History"';
+    var title = 'Invalid Sheet Name';
+    SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+  }
+}
+
 function addFormulaByWishHistoryName(name) {
   var sheetSource = SpreadsheetApp.openById(sheetSourceId);
   if (sheetSource) {
-    var wishHistorySource = sheetSource.getSheetByName(name);
+    var wishHistorySource = sheetSource.getSheetByName("Wish History");
     var sheet = findWishHistoryByName(name,sheetSource);
-    
+
     var wishHistorySourceNumberOfColumn = wishHistorySource.getLastColumn();
+    // Reduce one column due to paste
+    var wishHistorySourceNumberOfColumnWithFormulas = wishHistorySourceNumberOfColumn - 2;
 
-    for (var i = 2; i <= wishHistorySourceNumberOfColumn; i++) {
-      var titleCell = wishHistorySource.getRange(1, i).getValue();
-      var formulaCell = wishHistorySource.getRange(2, i).getFormula();
+    var lastRowWithoutTitle = sheet.getMaxRows() - 1;
+
+    var currentOverrideTitleCell = sheet.getRange(1, 2).getValue();
+    var sourceOverrideTitleCell = wishHistorySource.getRange(1, 2).getValue();
+    if (currentOverrideTitleCell != sourceOverrideTitleCell) {
+      // If override column don't exist, populate from source
+      var overrideCells = wishHistorySource.getRange(2, 2).getFormula();
+      sheet.getRange(2, 2, lastRowWithoutTitle, 1).setValue(overrideCells);
+      sheet.getRange(1, 2).setValue(sourceOverrideTitleCell);
+      sheet.setColumnWidth(2, wishHistorySource.getColumnWidth(2));
+    }
+    
+    // Get second row formula columns and set current sheet
+    var formulaCells = wishHistorySource.getRange(2, 3, 1, wishHistorySourceNumberOfColumnWithFormulas).getFormulas();
+    sheet.getRange(2, 3, lastRowWithoutTitle, wishHistorySourceNumberOfColumnWithFormulas).setValue(formulaCells);
+
+    // Get title columns and set current sheet
+    var titleCells = wishHistorySource.getRange(1, 3, 1, wishHistorySourceNumberOfColumnWithFormulas).getFormulas();
+    sheet.getRange(1, 3, 1, wishHistorySourceNumberOfColumnWithFormulas).setValues(titleCells);
+
+    for (var i = 3; i <= wishHistorySourceNumberOfColumn; i++) {
+      // Apply formatting for cells
       var numberFormatCell = wishHistorySource.getRange(2, i).getNumberFormat();
-
-      sheet.getRange(1, i, 1, 1).setValue(titleCell);
-      sheet.getRange(2, i, sheet.getLastRow(), 1).setValue(formulaCell);
-      sheet.getRange(2, i, sheet.getLastRow(), 1).setNumberFormat(numberFormatCell);
+      sheet.getRange(2, i, lastRowWithoutTitle, 1).setNumberFormat(numberFormatCell);
+      // Set column width from source
       sheet.setColumnWidth(i, wishHistorySource.getColumnWidth(i));
     }
 
@@ -139,12 +174,27 @@ function findWishHistoryByName(name, sheetSource) {
       sheetSource = SpreadsheetApp.openById(sheetSourceId);
     }
     if (sheetSource) {
-      var sheetCopySource = sheetSource.getSheetByName(name);
+      var sheetCopySource = sheetSource.getSheetByName("Wish History");
       sheetCopySource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName(name);
       wishHistorySheet = SpreadsheetApp.getActive().getSheetByName(name);
     }
   }
   return wishHistorySheet;
+}
+
+/**
+* Add sort for selected Wish History sheet
+*/
+function sortWishHistory() {
+  var sheetActive = SpreadsheetApp.getActiveSpreadsheet();
+  var wishHistoryName = sheetActive.getSheetName();
+  if (nameOfWishHistorys.indexOf(wishHistoryName) != -1) {
+    sortWishHistoryByName(wishHistoryName);
+  } else {
+    var message = 'Sheet must be called "Character Event Wish History" or "Permanent Wish History" or "Weapon Event Wish History" or "Novice Wish History"';
+    var title = 'Invalid Sheet Name';
+    SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+  }
 }
 
 /**
@@ -178,9 +228,9 @@ function sortNoviceWishHistory() {
 function sortWishHistoryByName(sheetName) {
   var sheet = findWishHistoryByName(sheetName, null);
   if (sheet) {
-    if (sheet.getLastColumn() > 5) {
-      var range = sheet.getRange(2, 1, sheet.getLastRow(), sheet.getLastColumn());
-      range.sort([{column: 4, ascending: true}, {column: 6, ascending: true}]);
+    if (sheet.getLastColumn() > 6) {
+      var range = sheet.getRange(2, 1, sheet.getMaxRows()-1, sheet.getLastColumn());
+      range.sort([{column: 5, ascending: true}, {column: 2, ascending: true}, {column: 7, ascending: true}]);
     } else {
       var message = 'Invalid number of columns to sort, run "Refresh Formula" or "Update Items"';
       var title = 'Error';
