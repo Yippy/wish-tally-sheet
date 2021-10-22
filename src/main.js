@@ -27,6 +27,23 @@ var dashboardRefreshRange = [
   "K26" // Weapon Total
 ];
 
+function getSettingsSheet() {
+  var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
+  if (!settingsSheet) {
+    var sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
+    var sheetSettingSource = sheetSource.getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
+    var settingsSheet = sheetSettingSource.copyTo(SpreadsheetApp.getActiveSpreadsheet());
+    settingsSheet.setName(WISH_TALLY_SETTINGS_SHEET_NAME);
+    var dashboardSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_DASHBOARD_SHEET_NAME);
+    if (!dashboardSheet) {
+      var sheetDashboardSource = sheetSource.getSheetByName(WISH_TALLY_DASHBOARD_SHEET_NAME);
+      var dashboardSheet = sheetDashboardSource.copyTo(SpreadsheetApp.getActiveSpreadsheet());
+      dashboardSheet.setName(WISH_TALLY_DASHBOARD_SHEET_NAME);
+    }
+  }
+  return settingsSheet;
+}
+
 /**
  * Return the id of the sheet. (by name)
  *
@@ -54,7 +71,7 @@ function GET_SPREADSHEET_ID() {
 }
 
 function reorderSheets() {
-  var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
+  var settingsSheet = getSettingsSheet();
   if (settingsSheet) {
     var sheetsToSort = settingsSheet.getRange(28,2,15,1).getValues();
 
@@ -297,8 +314,8 @@ var quickUpdateRange = [
 ];
 
 function quickUpdate() {
+  var settingsSheet = getSettingsSheet();
   var dashboardSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_DASHBOARD_SHEET_NAME);
-  var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
   if (dashboardSheet) {
     dashboardSheet.getRange(dashboardEditRange[0]).setValue("Quick Update: Running script, please wait.");
     dashboardSheet.getRange(dashboardEditRange[0]).setFontColor("yellow").setFontWeight("bold");
@@ -444,6 +461,7 @@ function quickUpdate() {
 * Update Item List
 */
 function updateItemsList() {
+  var settingsSheet = getSettingsSheet();
   var dashboardSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_DASHBOARD_SHEET_NAME);
   var updateItemHasFailed = false;
   if (dashboardSheet) {
@@ -461,7 +479,6 @@ function updateItemsList() {
       if (SpreadsheetApp.getActive().getSheets().length == 1) {
         placeHolderSheet = SpreadsheetApp.getActive().insertSheet();
       }
-      var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
       if (settingsSheet) {
         var isLoading = settingsSheet.getRange(5, 7).getValue();
         if (isLoading) {

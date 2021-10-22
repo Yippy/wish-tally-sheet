@@ -36,7 +36,7 @@ function displayReadme() {
     var sheetREADMESource;
 
     // Add Language
-    var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
+    var settingsSheet = getSettingsSheet();
     if (settingsSheet) {
       var languageFound = settingsSheet.getRange(2, 2).getValue();
       sheetREADMESource = sheetSource.getSheetByName(WISH_TALLY_README_SHEET_NAME+"-"+languageFound);

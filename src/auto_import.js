@@ -1,6 +1,6 @@
 function importFromAPI() {
   var errorCodeNotEncountered = true;
-  var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
+  var settingsSheet = getSettingsSheet();
   settingsSheet.getRange("E42").setValue(new Date());
   settingsSheet.getRange("E43").setValue("");
 

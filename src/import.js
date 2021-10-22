@@ -1,6 +1,6 @@
 function importButtonScript() {
+  var settingsSheet = getSettingsSheet();
   var dashboardSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_DASHBOARD_SHEET_NAME);
-  var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
   if (dashboardSheet && settingsSheet) {
     var userImportSelection = dashboardSheet.getRange(dashboardEditRange[4]).getValue();
     var importSelectionText = dashboardSheet.getRange(dashboardEditRange[6]).getValue();
@@ -19,7 +19,7 @@ function importButtonScript() {
 }
 
 function importDataManagement() {
-  var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
+  var settingsSheet = getSettingsSheet();
   var userImportInput = settingsSheet.getRange("D6").getValue();
   var userImportStatus = settingsSheet.getRange("E7").getValue();
   var message = "";

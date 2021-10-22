@@ -43,7 +43,7 @@ function addFormulaByWishHistoryName(name) {
   if (sheetSource) {
     // Add Language
     var wishHistorySource;
-    var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
+    var settingsSheet = getSettingsSheet();
     if (settingsSheet) {
       var languageFound = settingsSheet.getRange(2, 2).getValue();
       wishHistorySource = sheetSource.getSheetByName(WISH_TALLY_WISH_HISTORY_SHEET_NAME+"-"+languageFound);

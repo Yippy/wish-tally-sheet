@@ -14,7 +14,7 @@ function createHourlyTrigger(functionName, hour, minutes) {
 }
 
 function setTriggerDataManagement() {
-  var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
+  var settingsSheet = getSettingsSheet();
   removeTriggers();
   if (settingsSheet) {
     var isScheduleAvailable = false;
@@ -52,7 +52,7 @@ function setTriggerDataManagement() {
 }
 
 function updateItemsListTriggered() {
-  var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
+  var settingsSheet = getSettingsSheet();
   if (settingsSheet) {
     settingsSheet.getRange("E22").setValue(new Date());
     updateItemsList();
@@ -61,7 +61,7 @@ function updateItemsListTriggered() {
 }
 
 function sortRangesTriggered() {
-  var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
+  var settingsSheet = getSettingsSheet();
   if (settingsSheet) {
     settingsSheet.getRange("E29").setValue(new Date());
   }
@@ -100,7 +100,7 @@ function removeTriggers() {
 }
 
 function removeTriggerDataManagement() {
-  var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
+  var settingsSheet = getSettingsSheet();
   removeTriggers();
   if (settingsSheet) {
     var title = "Remove Schedule";
