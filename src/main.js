@@ -1,5 +1,5 @@
 /*
- * Version 2.5 made by yippym
+ * Version 2.6 made by yippym
  */
 
 var sheetSourceId = '1mTeEQs1nOViQ-_BVHkDSZgfKGsYiLATe1mFQxypZQWA';
@@ -390,6 +390,7 @@ function displayReadme() {
     }
  
     SpreadsheetApp.getActive().setActiveSheet(sheetREADME);
+    SpreadsheetApp.getActive().moveActiveSheet(1);
   } else {
     var message = 'Unable to connect to source';
     var title = 'Error';
@@ -589,8 +590,10 @@ function updateItemsList() {
       placeHolderSheet = SpreadsheetApp.getActive().insertSheet();
     }
 
+    var settingsSheet = SpreadsheetApp.getActive().getSheetByName("Settings");
+
     // Remove sheets
-    var listOfSheetsToRemove = ["Items","Pity Checker","Results","All Wish History"];
+    var listOfSheetsToRemove = ["Items","Events", "Pity Checker","Results","All Wish History"];
 
     var sheetAvailableSource = sheetSource.getSheetByName("Available");
     var availableRanges = sheetAvailableSource.getRange(2,1, sheetAvailableSource.getMaxRows()-1,1).getValues();
@@ -602,10 +605,43 @@ function updateItemsList() {
     }
  
     var listOfSheetsToRemoveLength = listOfSheetsToRemove.length;
-
     for (var i = 0; i < listOfSheetsToRemoveLength; i++) {
-      var sheetToRemove = SpreadsheetApp.getActive().getSheetByName(listOfSheetsToRemove[i]);
+      var sheetNameToRemove = listOfSheetsToRemove[i];
+      var sheetToRemove = SpreadsheetApp.getActive().getSheetByName(sheetNameToRemove);
       if(sheetToRemove) {
+        if (settingsSheet) {
+          if (sheetNameToRemove == "Pity Checker") {
+            var isDarkMode = sheetToRemove.getRange("AV1").getValue();
+            var isShowTimer = sheetToRemove.getRange("F1").getValue();
+            settingsSheet.getRange("G2").setValue(isDarkMode);
+            settingsSheet.getRange("H2").setValue(isShowTimer);
+          } else if (sheetNameToRemove == "Results") {
+            var isDarkMode = sheetToRemove.getRange("B9").getValue();
+            settingsSheet.getRange("G3").setValue(isDarkMode);
+          } else if (sheetNameToRemove == "Events") {
+            var eventsValueRange = sheetToRemove.getRange(2,8, sheetToRemove.getMaxRows()-1,1).getValues();
+            eventsValueRange = String(eventsValueRange).split(",");
+            var eventFormulaRanges = sheetToRemove.getRange(2,8, sheetToRemove.getMaxRows()-1,1).getFormulas();
+            var saveDate = [];
+            for (var ii = 0; ii < eventFormulaRanges.length; ii++) {
+              var formulaData = eventFormulaRanges[ii];
+              if (formulaData == "") {
+                var valueData = eventsValueRange[ii];
+                if (valueData == "true") {
+                  saveDate.push("TRUE");
+                } else if (valueData == "false") {
+                  saveDate.push("");
+                } else {
+                  saveDate.push(eventsValueRange[ii]);
+                }
+              } else {
+                saveDate.push("");
+              }
+            }
+            settingsSheet.getRange("G4").setValue(saveDate.join(","));
+          }
+        }
+
         // If exist remove from spreadsheet
         SpreadsheetApp.getActiveSpreadsheet().deleteSheet(sheetToRemove);
       }
@@ -621,7 +657,6 @@ function updateItemsList() {
     
     // Add Language
     var sheetItemSource;
-    var settingsSheet = SpreadsheetApp.getActive().getSheetByName("Settings");
     if (settingsSheet) {
       var languageFound = settingsSheet.getRange(2, 2).getValue();
       sheetItemSource = sheetSource.getSheetByName("Items"+"-"+languageFound);
@@ -649,28 +684,83 @@ function updateItemsList() {
     }
     SpreadsheetApp.flush();
     Utilities.sleep(100);
+
+    var shouldShowSheet = true;
+    if (settingsSheet) {
+      if (settingsSheet.getRange("B14").getValue()) {
+      } else {
+        shouldShowSheet = false;
+      }
+    }
+      
+    if (shouldShowSheet) {
+      var sheetEventsSource = sheetSource.getSheetByName('Events');
+      var sheetEvents = sheetEventsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Events');
+      
+      if (settingsSheet) {
+        var saveDate = settingsSheet.getRange("G4").getValue().split(",");
+        for (var ii = 0; ii < saveDate.length; ii++) {
+          var valueData = saveDate[ii];
+          if (valueData == "TRUE") {
+            sheetEvents.getRange(2 + ii,8).setValue(true);
+          } else if (valueData) {
+            if (valueData != "") {
+              sheetEvents.getRange(2 + ii,8).setValue(valueData);
+            }
+          }
+        }
+      }
+      SpreadsheetApp.getActive().setActiveSheet(sheetEvents);
+      SpreadsheetApp.getActive().moveActiveSheet(1);
+    }
+
     var sheetPityCheckerSource = sheetSource.getSheetByName('Pity Checker');
-    sheetPityCheckerSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Pity Checker');
+    var sheetPityChecker = sheetPityCheckerSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Pity Checker');
+
+    SpreadsheetApp.getActive().setActiveSheet(sheetPityChecker);
+    SpreadsheetApp.getActive().moveActiveSheet(1);
+
+    if (settingsSheet) {
+      var isDarkMode =  settingsSheet.getRange("G2").getValue();
+      sheetPityChecker.getRange("AV1").setValue(isDarkMode);
+      var isShowTimer = settingsSheet.getRange("H2").getValue();
+      sheetPityChecker.getRange("F1").setValue(isShowTimer);
+    }
     var sheetAllWishHistorySource = sheetSource.getSheetByName('All Wish History');
     var sheetAllWishHistory = sheetAllWishHistorySource.copyTo(SpreadsheetApp.getActiveSpreadsheet());
     sheetAllWishHistory.setName('All Wish History');
     sheetAllWishHistory.hideSheet();
-    
-    
-    // Add Language
-    var sheetResultsSource;
-    if (settingsSheet) {
-      var languageFound = settingsSheet.getRange(2, 2).getValue();
-      sheetResultsSource = sheetSource.getSheetByName("Results"+"-"+languageFound);
-    }
-    if (sheetResultsSource) {
-      // Found language
-    } else {
-      // Default
-      sheetResultsSource = sheetSource.getSheetByName("Results");
-    }
-    sheetResultsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Results');
 
+    shouldShowSheet = true;
+    if (settingsSheet) {
+      if (settingsSheet.getRange("B15").getValue()) {
+      } else {
+        shouldShowSheet = false;
+      }
+    }
+      
+    if (shouldShowSheet) {
+      // Add Language
+      var sheetResultsSource;
+      if (settingsSheet) {
+        var languageFound = settingsSheet.getRange(2, 2).getValue();
+        sheetResultsSource = sheetSource.getSheetByName("Results"+"-"+languageFound);
+      }
+      if (sheetResultsSource) {
+        // Found language
+      } else {
+        // Default
+        sheetResultsSource = sheetSource.getSheetByName("Results");
+      }
+      var sheetResults = sheetResultsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Results');
+      
+      if (settingsSheet) {
+        var isDarkMode = settingsSheet.getRange("G3").getValue();
+        sheetResults.getRange("B9").setValue(isDarkMode);
+      }
+      SpreadsheetApp.getActive().setActiveSheet(sheetResults);
+      SpreadsheetApp.getActive().moveActiveSheet(1);
+    }
     // Put available sheet into current
     var skipRanges = sheetAvailableSource.getRange(2,2, sheetAvailableSource.getMaxRows()-1,1).getValues();
     skipRanges = String(skipRanges).split(",");
