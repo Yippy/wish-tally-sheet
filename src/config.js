@@ -1,3 +1,8 @@
+/*
+ * Version 3.0.1 made by yippym - 2021-10-22 21:00
+ * https://github.com/Yippy/wish-tally-sheet
+ */
+
 // Wish Tally Const
 var WISH_TALLY_SHEET_SOURCE_ID = '1mTeEQs1nOViQ-_BVHkDSZgfKGsYiLATe1mFQxypZQWA';
 

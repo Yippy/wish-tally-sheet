@@ -1,6 +1,6 @@
 /*
-* Copyright (C) 2020 yippym
-* Version 3.0 made by yippym - 2021-06-28 16:14
+ * Version 3.0.1 made by yippym - 2021-10-22 21:00
+ * https://github.com/Yippy/wish-tally-sheet
  */
 
 var dashboardEditRange = [

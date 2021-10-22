@@ -1,3 +1,8 @@
+/*
+ * Version 3.0.1 made by yippym - 2021-10-22 21:00
+ * https://github.com/Yippy/wish-tally-sheet
+ */
+
 function clearAHK() {
   var autoHotkeySheet = SpreadsheetApp.getActive().getSheetByName(AUTOHOTKEY_SHEET_NAME);
   if (autoHotkeySheet) {
