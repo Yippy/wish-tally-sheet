@@ -1,3 +1,5 @@
+var sheetSourceId = '1mTeEQs1nOViQ-_BVHkDSZgfKGsYiLATe1mFQxypZQWA';
+
 function onOpen( ){
   var ui = SpreadsheetApp.getUi();
   
@@ -8,7 +10,7 @@ function onOpen( ){
              .addItem('Refresh Formula', 'addFormulaCharacterEventWishHistory'))
   .addSubMenu(ui.createMenu('Permanent Wish History')
              .addItem('Sort Range', 'sortPermanentWishHistory')
-             .addItem('Refresh Formula', 'addFormulaByWishHistoryName'))
+             .addItem('Refresh Formula', 'addFormulaPermanentWishHistory'))
   .addSubMenu(ui.createMenu('Weapon Event Wish History')
              .addItem('Sort Range', 'sortWeaponEventWishHistory')
              .addItem('Refresh Formula', 'addFormulaWeaponEventWishHistory'))
@@ -17,12 +19,13 @@ function onOpen( ){
              .addItem('Refresh Formula', 'addFormulaNoviceWishHistory'))
   .addSeparator()
   .addItem('Update Items', 'updateItemsList')
+  .addItem('Get Latest README', 'displayReadme')
   .addItem('About', 'displayAbout')
   .addToUi();
 }
-  
+
 function displayAbout() {
-  var sheetSource = SpreadsheetApp.openById('1mTeEQs1nOViQ-_BVHkDSZgfKGsYiLATe1mFQxypZQWA');
+  var sheetSource = SpreadsheetApp.openById(sheetSourceId);
   if (sheetSource) {
     var aboutSource = sheetSource.getSheetByName('About');
     var titleString = aboutSource.getRange("B1").getValue();
@@ -42,6 +45,37 @@ function displayAbout() {
     SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
   }
 }
+
+function displayReadme() {
+  var sheetSource = SpreadsheetApp.openById(sheetSourceId);
+  if (sheetSource) {
+    // Avoid Exception: You can't remove all the sheets in a document.Details
+    var placeHolderSheet = null;
+    if (SpreadsheetApp.getActive().getSheets().length == 1) {
+      placeHolderSheet = SpreadsheetApp.getActive().insertSheet();
+    }
+    var sheetToRemove = SpreadsheetApp.getActive().getSheetByName('README');
+      if(sheetToRemove) {
+        // If exist remove from spreadsheet
+        SpreadsheetApp.getActiveSpreadsheet().deleteSheet(sheetToRemove);
+      }
+    var sheetREADMESource = sheetSource.getSheetByName('README');
+    sheetREADMESource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('README');
+    
+    // Remove placeholder if available
+    if(placeHolderSheet) {
+      // If exist remove from spreadsheet
+      SpreadsheetApp.getActiveSpreadsheet().deleteSheet(placeHolderSheet);
+    }
+    var sheetREADME = SpreadsheetApp.getActive().getSheetByName('README');
+    SpreadsheetApp.getActive().setActiveSheet(sheetREADME);
+  } else {
+    var message = 'Unable to connect to source';
+    var title = 'Error';
+    SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+  }
+}
+
 /**
 * Add Formula Character Event Wish History
 */
@@ -68,40 +102,68 @@ function addFormulaNoviceWishHistory() {
 }
 
 function addFormulaByWishHistoryName(name) {
-  var sheetSource = SpreadsheetApp.openById('1mTeEQs1nOViQ-_BVHkDSZgfKGsYiLATe1mFQxypZQWA');
+  var sheetSource = SpreadsheetApp.openById(sheetSourceId);
   if (sheetSource) {
     var wishHistorySource = sheetSource.getSheetByName(name);
-    var sheet = SpreadsheetApp.getActive().getSheetByName(name);
+    var sheet = findWishHistoryByName(name,sheetSource);
     
     var numberTitle = wishHistorySource.getRange("B1").getValue();
     var numberFormula = wishHistorySource.getRange("B2").getFormula();
     sheet.getRange(1, 2, 1, 1).setValue(numberTitle);
     sheet.getRange(2, 2, sheet.getLastRow(), 1).setValue(numberFormula);
+    sheet.setColumnWidth(2, wishHistorySource.getColumnWidth(2));
 
     var weaponTitle = wishHistorySource.getRange("C1").getValue();
     var weaponFormula = wishHistorySource.getRange("C2").getFormula();
     sheet.getRange(1, 3, 1, 1).setValue(weaponTitle);
     sheet.getRange(2, 3, sheet.getLastRow(), 1).setValue(weaponFormula);
+    sheet.setColumnWidth(3, wishHistorySource.getColumnWidth(3));
 
     var dateAndTimeTitle = wishHistorySource.getRange("D1").getValue();
     var dateAndTimeFormula = wishHistorySource.getRange("D2").getFormula();
     sheet.getRange(1, 4, 1, 1).setValue(dateAndTimeTitle);
     sheet.getRange(2, 4, sheet.getLastRow(), 1).setValue(dateAndTimeFormula);
+    sheet.setColumnWidth(4, wishHistorySource.getColumnWidth(4));
 
     var itemNameTitle = wishHistorySource.getRange("E1").getValue();
     var itemNameFormula = wishHistorySource.getRange("E2").getFormula();
     sheet.getRange(1, 5, 1, 1).setValue(itemNameTitle);
     sheet.getRange(2, 5, sheet.getLastRow(), 1).setValue(itemNameFormula);
+    sheet.setColumnWidth(5, wishHistorySource.getColumnWidth(5));
 
     var itemRarityTitle = wishHistorySource.getRange("F1").getValue();
     var itemRarityFormula = wishHistorySource.getRange("F2").getFormula();
+    sheet.getRange(1, 6, 1, 1).setValue(itemRarityTitle);
     sheet.getRange(2, 6, sheet.getLastRow(), 1).setValue(itemRarityFormula);
+    sheet.setColumnWidth(6, wishHistorySource.getColumnWidth(6));
+
+    // Ensure new row is not the same height as first, if row 2 did not exist
+    sheet.autoResizeRows(2, 1);
   } else {
     var message = 'Unable to connect to source';
     var title = 'Error';
     SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
   }
 }
+
+/**
+* Check is sheet exist in active spreadsheet, otherwise pull sheet from source
+*/
+function findWishHistoryByName(name, sheetSource) {
+  var wishHistorySheet = SpreadsheetApp.getActive().getSheetByName(name);
+  if (wishHistorySheet == null) {
+    if (sheetSource == null) {
+      sheetSource = SpreadsheetApp.openById(sheetSourceId);
+    }
+    if (sheetSource) {
+      var sheetCopySource = sheetSource.getSheetByName(name);
+      sheetCopySource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName(name);
+      wishHistorySheet = SpreadsheetApp.getActive().getSheetByName(name);
+    }
+  }
+  return wishHistorySheet;
+}
+
 /**
 * Sort Character Event Wish History
 */
@@ -131,19 +193,34 @@ function sortNoviceWishHistory() {
 }
 
 function sortWishHistoryByName(sheetName) {
-  var sheet = SpreadsheetApp.getActive().getSheetByName(sheetName);
-  var range = sheet.getRange(2, 1, sheet.getLastRow(), sheet.getLastColumn());
-  range.sort([{column: 4, ascending: true}, {column: 6, ascending: true}]);
+  var sheet = findWishHistoryByName(sheetName, null);
+  if (sheet) {
+    // Sheet should have 6 columns
+    if (sheet.getLastColumn() < 6 || sheet.getLastRow() < 2) {
+      addFormulaByWishHistoryName(sheetName);
+    }
+    var range = sheet.getRange(2, 1, sheet.getLastRow(), sheet.getLastColumn());
+    range.sort([{column: 4, ascending: true}, {column: 6, ascending: true}]);
+  } else {
+    var message = 'Unable to connect to source';
+    var title = 'Error';
+    SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+  }
 }
 
 /**
 * Update Item List
 */
 function updateItemsList() {
-  
-  var sheetSource = SpreadsheetApp.openById('1mTeEQs1nOViQ-_BVHkDSZgfKGsYiLATe1mFQxypZQWA');
+  var sheetSource = SpreadsheetApp.openById(sheetSourceId);
   // Check source is available
   if (sheetSource) {
+    // Avoid Exception: You can't remove all the sheets in a document.Details
+    var placeHolderSheet = null;
+    if (SpreadsheetApp.getActive().getSheets().length == 1) {
+      placeHolderSheet = SpreadsheetApp.getActive().insertSheet();
+    }
+
     // Remove sheets
     var listOfSheetsToRemove = ["Items","Pity Checker","Results","Changelog"];
     var listOfSheetsToRemoveLength = listOfSheetsToRemove.length;
@@ -156,13 +233,17 @@ function updateItemsList() {
       }
     }
 
+    var listOfSheets = ["Character Event Wish History","Permanent Wish History","Weapon Event Wish History","Novice Wish History"];
+    var listOfSheetsLength = listOfSheets.length;
+    // Check if sheet exist
+    for (var i = 0; i < listOfSheetsLength; i++) {
+      findWishHistoryByName(listOfSheets[i], sheetSource);
+    }
+
     var sheetItemSource = sheetSource.getSheetByName('Items');
     sheetItemSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Items');
 
     // Refresh spreadsheet
-    var listOfSheets = ["Character Event Wish History","Permanent Wish History","Weapon Event Wish History","Novice Wish History"];
-    var listOfSheetsLength = listOfSheets.length;
-    
     for (var i = 0; i < listOfSheetsLength; i++) {
       addFormulaByWishHistoryName(listOfSheets[i]);
       /*
@@ -183,6 +264,15 @@ function updateItemsList() {
     sheetResultsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Results');
     var sheetChangelogSource = sheetSource.getSheetByName('Changelog');
     sheetChangelogSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Changelog');
+    
+    // Remove placeholder if available
+    if(placeHolderSheet) {
+      // If exist remove from spreadsheet
+      SpreadsheetApp.getActiveSpreadsheet().deleteSheet(placeHolderSheet);
+    }
+    // Bring Pity Checker into view
+    var sheetPityChecker = SpreadsheetApp.getActive().getSheetByName('Pity Checker');
+    SpreadsheetApp.getActive().setActiveSheet(sheetPityChecker);
   } else {
     var message = 'Unable to connect to source';
     var title = 'Error';
