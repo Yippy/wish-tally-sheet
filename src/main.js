@@ -29,17 +29,21 @@ var dashboardRefreshRange = [
 
 function getSettingsSheet() {
   var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
+  var sheetSource;
   if (!settingsSheet) {
-    var sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
+    sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
     var sheetSettingSource = sheetSource.getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
     var settingsSheet = sheetSettingSource.copyTo(SpreadsheetApp.getActiveSpreadsheet());
     settingsSheet.setName(WISH_TALLY_SETTINGS_SHEET_NAME);
-    var dashboardSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_DASHBOARD_SHEET_NAME);
-    if (!dashboardSheet) {
-      var sheetDashboardSource = sheetSource.getSheetByName(WISH_TALLY_DASHBOARD_SHEET_NAME);
-      var dashboardSheet = sheetDashboardSource.copyTo(SpreadsheetApp.getActiveSpreadsheet());
-      dashboardSheet.setName(WISH_TALLY_DASHBOARD_SHEET_NAME);
+  }
+  var dashboardSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_DASHBOARD_SHEET_NAME);
+  if (!dashboardSheet) {
+    if (!sheetSource) {
+      sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
     }
+    var sheetDashboardSource = sheetSource.getSheetByName(WISH_TALLY_DASHBOARD_SHEET_NAME);
+    var dashboardSheet = sheetDashboardSource.copyTo(SpreadsheetApp.getActiveSpreadsheet());
+    dashboardSheet.setName(WISH_TALLY_DASHBOARD_SHEET_NAME);
   }
   return settingsSheet;
 }
