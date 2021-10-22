@@ -1,5 +1,5 @@
 /*
- * Version 2.6 made by yippym
+ * Version 2.7 made by yippym
  */
 
 var sheetSourceId = '1mTeEQs1nOViQ-_BVHkDSZgfKGsYiLATe1mFQxypZQWA';
@@ -36,6 +36,7 @@ function onOpen( ){
              .addItem('Set Schedule', 'setTriggerDataManagement')
              .addItem('Remove All Schedule', 'removeTriggerDataManagement'))
   .addSeparator()
+  .addItem('Quick Update', 'quickUpdate')
   .addItem('Update Items', 'updateItemsList')
   .addItem('Get Latest README', 'displayReadme')
   .addItem('About', 'displayAbout')
@@ -260,6 +261,58 @@ function importDataManagement() {
             settingsSheet.getRange(rowOfStatusWishHistory+i, 5).setValue(wishHistoryMissingStatus);
           }
         }
+        var sourceSettingsSheet = importSource.getSheetByName("Settings");
+        if (sourceSettingsSheet) {
+          var sourcePityCheckerSheet = importSource.getSheetByName("Pity Checker");
+          if (sourcePityCheckerSheet) {
+            savePityCheckerSettings(sourcePityCheckerSheet, settingsSheet);
+          }
+          if (sourceSettingsSheet.getMaxColumns() >= 8) {
+            var version = sourceSettingsSheet.getRange("H1").getValue();
+            if (version == "2.7") {
+              var pityCheckerIsShow4Star = sourceSettingsSheet.getRange("B18").getValue();
+              settingsSheet.getRange("B18").setValue(pityCheckerIsShow4Star == true);
+              var pityCheckerIsShow5Star = sourceSettingsSheet.getRange("B19").getValue();
+              settingsSheet.getRange("B19").setValue(pityCheckerIsShow5Star == true);
+            }
+          }
+          var pityCheckerSheet = SpreadsheetApp.getActive().getSheetByName('Pity Checker');
+          if (pityCheckerSheet) {
+            restorePityCheckerSettings(pityCheckerSheet, settingsSheet);
+          }
+          var offset = sourceSettingsSheet.getRange("B10").getValue();
+          if (offset >= -11 && offset <= 12) {
+             settingsSheet.getRange("B10").setValue(offset);
+          }
+          var language = sourceSettingsSheet.getRange("B2").getValue();
+          if (language) {
+             settingsSheet.getRange("B2").setValue(language);
+          }
+          var server = sourceSettingsSheet.getRange("B3").getValue();
+          if (server) {
+             settingsSheet.getRange("B3").setValue(server);
+          }
+        }
+        //Restore Events
+        var sourceEventsSheet = importSource.getSheetByName("Events");
+        if (sourceEventsSheet) {
+          saveEventsSettings(sourceEventsSheet,settingsSheet);
+          var eventsSheet = SpreadsheetApp.getActive().getSheetByName('Events');
+          if (eventsSheet) {
+            restoreEventsSettings(eventsSheet, settingsSheet)
+          }
+        }
+        
+        //Restore Results
+        var sourceResultsSheet = importSource.getSheetByName("Results");
+        if (sourceResultsSheet) {
+          saveResultsSettings(sourceResultsSheet, settingsSheet);
+          var resultsSheet = SpreadsheetApp.getActive().getSheetByName('Results');
+          if (resultsSheet) {
+            restoreResultsSettings(resultsSheet, settingsSheet)
+          }
+        }
+        
         title = "Complete";
         message = "Imported all rows in column Paste Value and Override";
         statusMessage = completeStatus;
@@ -577,6 +630,174 @@ function sortWishHistoryByName(sheetName) {
   }
 }
 
+function savePityCheckerSettings(pityCheckerSheet, settingsSheet) {
+  var isDarkMode = pityCheckerSheet.getRange("AV1").getValue();
+  var isShowTimer = pityCheckerSheet.getRange("F1").getValue();
+  settingsSheet.getRange("G2").setValue(isDarkMode);
+  settingsSheet.getRange("H2").setValue(isShowTimer);
+}
+
+function saveResultsSettings(resultsSheet, settingsSheet) {
+  var isDarkMode = resultsSheet.getRange("B9").getValue();
+  settingsSheet.getRange("G3").setValue(isDarkMode);
+  var selectionValueRange = resultsSheet.getRange(10,1,1,4).getValues();
+  selectionValueRange = String(selectionValueRange).split(",");
+  settingsSheet.getRange("H3").setValue(selectionValueRange.join(","));
+}
+
+function saveEventsSettings(eventsSheet, settingsSheet) {
+  var eventsValueRange = eventsSheet.getRange(2,8, eventsSheet.getMaxRows()-1,1).getValues();
+  eventsValueRange = String(eventsValueRange).split(",");
+  var eventFormulaRanges = eventsSheet.getRange(2,8, eventsSheet.getMaxRows()-1,1).getFormulas();
+  var saveDate = [];
+  for (var ii = 0; ii < eventFormulaRanges.length; ii++) {
+    var formulaData = eventFormulaRanges[ii];
+    if (formulaData == "") {
+      var valueData = eventsValueRange[ii];
+      if (valueData == "true") {
+        saveDate.push("TRUE");
+      } else if (valueData == "false") {
+        saveDate.push("");
+      } else {
+        saveDate.push(eventsValueRange[ii]);
+      }
+    } else {
+      saveDate.push("");
+    }
+  }
+  settingsSheet.getRange("G4").setValue(saveDate.join(","));
+}
+
+function restoreEventsSettings(sheetEvents, settingsSheet) {
+  var saveDate = settingsSheet.getRange("G4").getValue().split(",");
+  for (var ii = 0; ii < saveDate.length; ii++) {
+    var valueData = saveDate[ii];
+    if (valueData == "TRUE") {
+      sheetEvents.getRange(2 + ii,8).setValue(true);
+    } else if (valueData) {
+      if (valueData != "") {
+        sheetEvents.getRange(2 + ii,8).setValue(valueData);
+      }
+    }
+  }
+}
+
+function restorePityCheckerSettings(sheetPityChecker, settingsSheet) {
+  var isDarkMode =  settingsSheet.getRange("G2").getValue();
+  if (isDarkMode != sheetPityChecker.getRange("AV1").getValue()) {
+    sheetPityChecker.getRange("AV1").setValue(isDarkMode);
+  }
+  var isShowTimer = settingsSheet.getRange("H2").getValue();
+  if (isShowTimer != settingsSheet.getRange("F1").getValue()) {
+    sheetPityChecker.getRange("F1").setValue(isShowTimer);
+  }
+
+  var itemNameFor4Star = settingsSheet.getRange('B18').getValue();
+  var itemNameFor5Star = settingsSheet.getRange('B19').getValue();
+  if (itemNameFor4Star) {
+    // Character Event Wish
+    sheetPityChecker.hideColumns(2)
+    sheetPityChecker.showColumns(4)
+    // Permanent Wish History
+    sheetPityChecker.hideColumns(14)
+    sheetPityChecker.showColumns(16)
+    // Weapon Wish History
+    sheetPityChecker.hideColumns(26)
+    sheetPityChecker.showColumns(28)
+    // Novice Wish History
+    sheetPityChecker.hideColumns(38)
+    sheetPityChecker.showColumns(40)
+  } else {
+    // Character Event Wish
+    sheetPityChecker.showColumns(2)
+    sheetPityChecker.hideColumns(4)
+    // Permanent Wish History
+    sheetPityChecker.showColumns(14)
+    sheetPityChecker.hideColumns(16)
+    // Weapon Wish History
+    sheetPityChecker.showColumns(26)
+    sheetPityChecker.hideColumns(28)
+    // Novice Wish History
+    sheetPityChecker.showColumns(38)
+    sheetPityChecker.hideColumns(40)
+  }
+  if (itemNameFor5Star) {
+    // Character Event Wish
+    sheetPityChecker.hideColumns(8)
+    sheetPityChecker.showColumns(10)
+    // Permanent Wish History
+    sheetPityChecker.hideColumns(20)
+    sheetPityChecker.showColumns(22)
+    // Weapon Wish History
+    sheetPityChecker.hideColumns(32)
+    sheetPityChecker.showColumns(34)
+    // Novice Wish History
+    sheetPityChecker.hideColumns(44)
+    sheetPityChecker.showColumns(46)
+  } else {
+    // Character Event Wish
+    sheetPityChecker.showColumns(8)
+    sheetPityChecker.hideColumns(10)
+    // Permanent Wish History
+    sheetPityChecker.showColumns(20)
+    sheetPityChecker.hideColumns(22)
+    // Weapon Wish History
+    sheetPityChecker.showColumns(32)
+    sheetPityChecker.hideColumns(34)
+    // Novice Wish History
+    sheetPityChecker.showColumns(44)
+    sheetPityChecker.hideColumns(46)
+  }
+}
+
+function restoreResultsSettings(sheetResults, settingsSheet) {
+  var isDarkMode = settingsSheet.getRange("G3").getValue();
+  if (isDarkMode != sheetResults.getRange("B9").getValue()) {
+    sheetResults.getRange("B9").setValue(isDarkMode);
+  }
+
+  var saveDate = settingsSheet.getRange("H3").getValue().split(",");
+  for (var ii = 0; ii < saveDate.length; ii++) {
+    var valueData = saveDate[ii];
+    sheetResults.getRange(10,1 + ii).setValue(valueData);
+  }
+}
+
+function quickUpdate() {
+  var settingsSheet = SpreadsheetApp.getActive().getSheetByName("Settings");
+  var sheetSource = SpreadsheetApp.openById(sheetSourceId);
+  if (settingsSheet) {
+    var sheetPityChecker = SpreadsheetApp.getActive().getSheetByName("Pity Checker");
+    if (sheetPityChecker) {
+      restorePityCheckerSettings(sheetPityChecker, settingsSheet);
+      if (sheetSource) {
+        var sheetPityCheckerSource = sheetSource.getSheetByName("Pity Checker");
+        if (sheetPityCheckerSource) {
+          var formula;
+          var value;
+          // Banner Images
+          formula = sheetPityCheckerSource.getRange('A2').getFormula();
+          sheetPityChecker.getRange('A2').setFormula(formula);
+          formula = sheetPityCheckerSource.getRange('M2').getFormula();
+          sheetPityChecker.getRange('M2').setFormula(formula);
+          formula = sheetPityCheckerSource.getRange('Y2').getFormula();
+          sheetPityChecker.getRange('Y2').setFormula(formula);
+          formula = sheetPityCheckerSource.getRange('AK2').getFormula();
+          sheetPityChecker.getRange('AK2').setFormula(formula);
+          
+          // Banner Time
+          value = sheetPityCheckerSource.getRange('A3').getValue();
+          sheetPityChecker.getRange('A3').setValue(value);
+          value = sheetPityCheckerSource.getRange('M3').getValue();
+          sheetPityChecker.getRange('M3').setValue(value);
+          value = sheetPityCheckerSource.getRange('Y3').getValue();
+          sheetPityChecker.getRange('Y3').setValue(value);
+        }
+      }
+    }
+  }
+}
+
 /**
 * Update Item List
 */
@@ -589,11 +810,33 @@ function updateItemsList() {
     if (SpreadsheetApp.getActive().getSheets().length == 1) {
       placeHolderSheet = SpreadsheetApp.getActive().insertSheet();
     }
-
     var settingsSheet = SpreadsheetApp.getActive().getSheetByName("Settings");
-
+    if (settingsSheet) {
+      var isLoading = settingsSheet.getRange(5, 7).getValue();
+      if (isLoading) {
+        var counter = settingsSheet.getRange(5, 8).getValue();
+        if (counter > 0) {
+          counter++;
+          settingsSheet.getRange(5, 8).setValue(counter);
+        } else {
+          settingsSheet.getRange(5, 8).setValue(1);
+        }
+        if (counter > 2) {
+          // Bypass message - for people with broken update wanting force update
+        } else {
+          var message = 'Still updating';
+          var title = 'Update already started, the number of time you requested is '+counter+'. If you want to force an update due to an error happened during update, proceed in calling "Update Item" one more try.';
+          SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+          return;
+        }
+      } else {
+        settingsSheet.getRange(5, 7).setValue(true);
+        settingsSheet.getRange(5, 8).setValue(1);
+        settingsSheet.getRange("G6").setValue(new Date());
+      }
+    }
     // Remove sheets
-    var listOfSheetsToRemove = ["Items","Events", "Pity Checker","Results","All Wish History"];
+    var listOfSheetsToRemove = ["Items","Events", "Pity Checker","Results","All Wish History", "Constellation"];
 
     var sheetAvailableSource = sheetSource.getSheetByName("Available");
     var availableRanges = sheetAvailableSource.getRange(2,1, sheetAvailableSource.getMaxRows()-1,1).getValues();
@@ -611,34 +854,11 @@ function updateItemsList() {
       if(sheetToRemove) {
         if (settingsSheet) {
           if (sheetNameToRemove == "Pity Checker") {
-            var isDarkMode = sheetToRemove.getRange("AV1").getValue();
-            var isShowTimer = sheetToRemove.getRange("F1").getValue();
-            settingsSheet.getRange("G2").setValue(isDarkMode);
-            settingsSheet.getRange("H2").setValue(isShowTimer);
+            savePityCheckerSettings(sheetToRemove, settingsSheet);
           } else if (sheetNameToRemove == "Results") {
-            var isDarkMode = sheetToRemove.getRange("B9").getValue();
-            settingsSheet.getRange("G3").setValue(isDarkMode);
+            saveResultsSettings(sheetToRemove, settingsSheet);
           } else if (sheetNameToRemove == "Events") {
-            var eventsValueRange = sheetToRemove.getRange(2,8, sheetToRemove.getMaxRows()-1,1).getValues();
-            eventsValueRange = String(eventsValueRange).split(",");
-            var eventFormulaRanges = sheetToRemove.getRange(2,8, sheetToRemove.getMaxRows()-1,1).getFormulas();
-            var saveDate = [];
-            for (var ii = 0; ii < eventFormulaRanges.length; ii++) {
-              var formulaData = eventFormulaRanges[ii];
-              if (formulaData == "") {
-                var valueData = eventsValueRange[ii];
-                if (valueData == "true") {
-                  saveDate.push("TRUE");
-                } else if (valueData == "false") {
-                  saveDate.push("");
-                } else {
-                  saveDate.push(eventsValueRange[ii]);
-                }
-              } else {
-                saveDate.push("");
-              }
-            }
-            settingsSheet.getRange("G4").setValue(saveDate.join(","));
+            saveEventsSettings(sheetToRemove, settingsSheet);
           }
         }
 
@@ -698,17 +918,7 @@ function updateItemsList() {
       var sheetEvents = sheetEventsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Events');
       
       if (settingsSheet) {
-        var saveDate = settingsSheet.getRange("G4").getValue().split(",");
-        for (var ii = 0; ii < saveDate.length; ii++) {
-          var valueData = saveDate[ii];
-          if (valueData == "TRUE") {
-            sheetEvents.getRange(2 + ii,8).setValue(true);
-          } else if (valueData) {
-            if (valueData != "") {
-              sheetEvents.getRange(2 + ii,8).setValue(valueData);
-            }
-          }
-        }
+        restoreEventsSettings(sheetEvents, settingsSheet);
       }
       SpreadsheetApp.getActive().setActiveSheet(sheetEvents);
       SpreadsheetApp.getActive().moveActiveSheet(1);
@@ -721,16 +931,14 @@ function updateItemsList() {
     SpreadsheetApp.getActive().moveActiveSheet(1);
 
     if (settingsSheet) {
-      var isDarkMode =  settingsSheet.getRange("G2").getValue();
-      sheetPityChecker.getRange("AV1").setValue(isDarkMode);
-      var isShowTimer = settingsSheet.getRange("H2").getValue();
-      sheetPityChecker.getRange("F1").setValue(isShowTimer);
+      restorePityCheckerSettings(sheetPityChecker, settingsSheet);
     }
     var sheetAllWishHistorySource = sheetSource.getSheetByName('All Wish History');
     var sheetAllWishHistory = sheetAllWishHistorySource.copyTo(SpreadsheetApp.getActiveSpreadsheet());
     sheetAllWishHistory.setName('All Wish History');
     sheetAllWishHistory.hideSheet();
 
+    // Show Results
     shouldShowSheet = true;
     if (settingsSheet) {
       if (settingsSheet.getRange("B15").getValue()) {
@@ -755,10 +963,56 @@ function updateItemsList() {
       var sheetResults = sheetResultsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Results');
       
       if (settingsSheet) {
-        var isDarkMode = settingsSheet.getRange("G3").getValue();
-        sheetResults.getRange("B9").setValue(isDarkMode);
+        restoreResultsSettings(sheetResults, settingsSheet);
       }
       SpreadsheetApp.getActive().setActiveSheet(sheetResults);
+      SpreadsheetApp.getActive().moveActiveSheet(1);
+    }
+    // Show Constellation
+    shouldShowSheet = true;
+    if (settingsSheet) {
+      if (settingsSheet.getRange("B16").getValue()) {
+      } else {
+        shouldShowSheet = false;
+      }
+    }
+    if (shouldShowSheet) {
+      // Add Language
+      var sheetConstellationSource;
+      if (settingsSheet) {
+        var languageFound = settingsSheet.getRange(2, 2).getValue();
+        sheetConstellationSource = sheetSource.getSheetByName("Constellation"+"-"+languageFound);
+      }
+      if (sheetConstellationSource) {
+        // Found language
+      } else {
+        // Default
+        sheetConstellationSource = sheetSource.getSheetByName("Constellation");
+      }
+      var sheetConstellation = sheetConstellationSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Constellation');
+      // Refresh Contents Links
+      var contentsAvailable = sheetConstellation.getRange(1, 1).getValue();
+      var contentsStartIndex = 2;
+      
+      for (var i = 0; i < contentsAvailable; i++) {
+        var valueRange = sheetConstellation.getRange(contentsStartIndex+i, 3).getValue();
+        var formulaRange = sheetConstellation.getRange(contentsStartIndex+i, 3).getFormula();
+        var textRange = formulaRange.split(",");
+        var bookmarkRange = formulaRange.split("=");
+        if (textRange.length > 1) {
+          textRange = textRange[1].split(")")[0];
+        }
+        if (bookmarkRange.length > 2) {
+          bookmarkRange = bookmarkRange[3].split('"')[0];
+        }
+        const richText = SpreadsheetApp.newRichTextValue()
+            .setText(valueRange)
+            .setLinkUrl(["#gid="+GET_SHEET_ID("Constellation")+'range='+bookmarkRange])
+            .build();
+        sheetConstellation.getRange(contentsStartIndex+i, 3).setRichTextValue(richText);
+      }
+      
+      SpreadsheetApp.getActive().setActiveSheet(sheetConstellation);
       SpreadsheetApp.getActive().moveActiveSheet(1);
     }
     // Put available sheet into current
@@ -817,6 +1071,10 @@ function updateItemsList() {
     // Bring Pity Checker into view
     var sheetPityChecker = SpreadsheetApp.getActive().getSheetByName('Pity Checker');
     SpreadsheetApp.getActive().setActiveSheet(sheetPityChecker);
+    
+    // Update Settings
+    settingsSheet.getRange(5, 7).setValue(false);
+    settingsSheet.getRange("H6").setValue(new Date());
   } else {
     var message = 'Unable to connect to source';
     var title = 'Error';
@@ -941,17 +1199,17 @@ function convertAHK() {
         } else {
           //autoHotkeySheet.getRange(2 +i,3).setValue(nextDateAndTime + ":"+ dateAndTime);
         }
-        if (isMulti) {
-          autoHotkeySheet.getRange(4 +i,4).setValue(overrideCounter);
-          overrideCounter--;
-          if (overrideCounter == 0) {
-            // Switch off multi
-            isMulti = false;
-          }
-        } else {
-          autoHotkeySheet.getRange(4 +i,4).setValue("");
-        }
         if (itemType && itemName && dateAndTime) {
+          if (isMulti) {
+            autoHotkeySheet.getRange(4 +i,4).setValue(overrideCounter);
+            overrideCounter--;
+            if (overrideCounter == 0) {
+              // Switch off multi
+              isMulti = false;
+            }
+          } else {
+            autoHotkeySheet.getRange(4 +i,4).setValue("");
+          }
           autoHotkeySheet.getRange(4 + groupIndex,2,3,1).mergeVertically();
           if (dateAndTime <= lastWishDateAndTime) {
             autoHotkeySheet.getRange(4 + groupIndex,2).setFormula('=CONCATENATE(CHAR(128503)," STOPPED date and time is older than banner")');
