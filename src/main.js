@@ -1,5 +1,5 @@
 /*
-* Version 2.92 made by yippym - 2021-04-30 13:25
+* Version 2.93 made by yippym - 2021-05-12 16:14
  */
 
 /* Add URL here to avoid showing on Sheet */
@@ -1042,7 +1042,7 @@ function restoreCollectionSettings(constellationsSheet, settingsSheet, itemsRang
           for (var i = 0; i < values.length; i++) {
             dataArray.push([values[i]]);
           }
-          constellationsSheet.getRange(16, c - userInputColumnValue,saveRowsValue,1).setValues(dataArray);
+          constellationsSheet.getRange(16, c - userInputColumnValue,dataArray.length,1).setValues(dataArray);
         }
       }
     }
