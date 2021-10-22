@@ -1,5 +1,5 @@
 /*
- * Version 2.7 made by yippym
+ * Version 2.8 made by yippym
  */
 
 var sheetSourceId = '1mTeEQs1nOViQ-_BVHkDSZgfKGsYiLATe1mFQxypZQWA';
@@ -1241,7 +1241,7 @@ function importAHK() {
     if (bannerSheet) {
       var iLastRow = bannerSheet.getRange(2, 1, bannerSheet.getLastRow(), 1).getValues().filter(String).length;
       if (iLastRow != 0) {
-        iLastRow = iLastRow + 1;
+        iLastRow = iLastRow + 2;
       } else {
         iLastRow = 2;
       }
