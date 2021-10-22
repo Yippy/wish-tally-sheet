@@ -1,44 +1,6 @@
-var bannerSettingsForImport = {
-  "Character Event Wish History": {"range_status":"E44","range_toggle":"E37", "gacha_type":301},
-  "Permanent Wish History": {"range_status":"E45","range_toggle":"E38", "gacha_type":200},
-  "Weapon Event Wish History": {"range_status":"E46","range_toggle":"E39", "gacha_type":302},
-  "Novice Wish History": {"range_status":"E47","range_toggle":"E40", "gacha_type":100},
-};
-
-var languageSettingsForImport = {
-  "English": {"code": "en","full_code":"en-us","4_star":" (4-Star)","5_star":" (5-Star)"},
-  "German": {"code": "de","full_code":"de-de","4_star":" (4 Sterne)","5_star":" (5 Sterne)"},
-  "French": {"code": "fr","full_code":"fr-fr","4_star":" (4★)","5_star":" (5★)"},
-  "Spanish": {"code": "es","full_code":"es-es","4_star":" (4★)","5_star":" (5★)"},
-  "Chinese Traditional": {"code": "zh-tw","full_code":"zh-tw","4_star":" (四星)","5_star":" (五星)"},
-  "Chinese Simplified": {"code": "zh-cn","full_code":"zh-cn","4_star":" (四星)","5_star":" (五星)"},
-  "Indonesian": {"code": "id","full_code":"id-id","4_star":" (4★)","5_star":" (5★)"},
-  "Japanese": {"code": "ja","full_code":"ja-jp","4_star":" (★4)","5_star":" (★5)"},
-  "Vietnamese": {"code": "vi","full_code":"vi-vn","4_star":" (4 sao)","5_star":" (5 sao)"},
-  "Korean": {"code": "ko","full_code":"ko-kr","4_star":" (★4)","5_star":" (★5)"},
-  "Portuguese": {"code": "pt","full_code":"pt-pt","4_star":" (4★)","5_star":" (5★)"},
-  "Thai": {"code": "th","full_code":"th-th","4_star":" (4 ดาว)","5_star":" (5 ดาว)"},
-  "Russian": {"code": "ru","full_code":"ru-ru","4_star":" (4★)","5_star":" (5★)"}
-};
-
-var additionalQuery = [
-  "authkey_ver=1",
-  "sign_type=2",
-  "auth_appid=webview_gacha",
-  "device_type=pc"
-];
-
-var url = "https://hk4e-api-os.mihoyo.com/event/gacha_info/api/getGachaLog";
-var urlChina = "https://hk4e-api.mihoyo.com/event/gacha_info/api/getGachaLog";
-
-var errorCodeAuthTimeout = -101;
-var errorCodeAuthInvalid = -100;
-var errorCodeLanguageCode = -108;
-var errorCodeRequestParams = -104;
-var errorCodeNotEncountered = true;
-
 function importFromAPI() {
-  var settingsSheet = SpreadsheetApp.getActive().getSheetByName('Settings');
+  var errorCodeNotEncountered = true;
+  var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
   settingsSheet.getRange("E42").setValue(new Date());
   settingsSheet.getRange("E43").setValue("");
 
@@ -65,35 +27,35 @@ function importFromAPI() {
     // Display auth key not available
     for (var i = 0; i < WISH_TALLY_NAME_OF_WISH_HISTORY.length; i++) {
       bannerName = WISH_TALLY_NAME_OF_WISH_HISTORY[i];
-      bannerSettings = bannerSettingsForImport[bannerName];
+      bannerSettings = AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT[bannerName];
       settingsSheet.getRange(bannerSettings['range_status']).setValue("No auth key");
     }
   } else {
     var selectedLanguageCode = settingsSheet.getRange("B2").getValue();
     var selectedServer = settingsSheet.getRange("B3").getValue();
-    var languageSettings = languageSettingsForImport[selectedLanguageCode];
+    var languageSettings = AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT[selectedLanguageCode];
     if (languageSettings == null) {
       // Get default language
-      languageSettings = languageSettingsForImport["English"];
+      languageSettings = AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT["English"];
     }
     var urlForWishHistory;
     if (selectedServer == "China") {
-      urlForWishHistory = urlChina;
+      urlForWishHistory = AUTO_IMPORT_URL_CHINA;
     } else {
-      urlForWishHistory = url;
+      urlForWishHistory = AUTO_IMPORT_URL;
     }
-    urlForWishHistory += "?"+additionalQuery.join("&")+"&authkey="+foundAuth+"&lang="+languageSettings['code'];
+    urlForWishHistory += "?"+AUTO_IMPORT_ADDITIONAL_QUERY.join("&")+"&authkey="+foundAuth+"&lang="+languageSettings['code'];
     errorCodeNotEncountered = true;
     // Clear status
     for (var i = 0; i < WISH_TALLY_NAME_OF_WISH_HISTORY.length; i++) {
       bannerName = WISH_TALLY_NAME_OF_WISH_HISTORY[i];
-      bannerSettings = bannerSettingsForImport[bannerName];
+      bannerSettings = AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT[bannerName];
       settingsSheet.getRange(bannerSettings['range_status']).setValue("");
     }
     for (var i = 0; i < WISH_TALLY_NAME_OF_WISH_HISTORY.length; i++) {
       if (errorCodeNotEncountered) {
         bannerName = WISH_TALLY_NAME_OF_WISH_HISTORY[i];
-        bannerSettings = bannerSettingsForImport[bannerName];
+        bannerSettings = AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT[bannerName];
         var isToggled = settingsSheet.getRange(bannerSettings['range_toggle']).getValue();
         if (isToggled == true) {
           bannerSheet = SpreadsheetApp.getActive().getSheetByName(bannerName);
@@ -209,15 +171,15 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
       var message = jsonDict["message"];
       var title ="Error code: "+jsonDict["retcode"];
       SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
-      if (errorCodeAuthTimeout == jsonDict["retcode"]) {
+      if (AUTO_IMPORT_URL_ERROR_CODE_AUTH_TIMEOUT == jsonDict["retcode"]) {
         errorCodeNotEncountered = false;
         is_done = true;
         settingsSheet.getRange(bannerSettings['range_status']).setValue("auth timeout");
-      } else if (errorCodeAuthInvalid == jsonDict["retcode"]) {
+      } else if (AUTO_IMPORT_URL_ERROR_CODE_AUTH_INVALID == jsonDict["retcode"]) {
         errorCodeNotEncountered = false;
         is_done = true;
         settingsSheet.getRange(bannerSettings['range_status']).setValue("auth invalid");
-      } else if (errorCodeRequestParams == jsonDict["retcode"]) {
+      } else if (AUTO_IMPORT_URL_ERROR_CODE_REQUEST_PARAMS == jsonDict["retcode"]) {
         errorCodeNotEncountered = false;
         is_done = true;
         settingsSheet.getRange(bannerSettings['range_status']).setValue("Change server setting");

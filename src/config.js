@@ -1,8 +1,48 @@
 // Wish Tally Const
 var WISH_TALLY_SHEET_SOURCE_ID = '1mTeEQs1nOViQ-_BVHkDSZgfKGsYiLATe1mFQxypZQWA';
+
+// Auto Import Const
 /* Add URL here to avoid showing on Sheet */
 var AUTO_IMPORT_URL_FOR_API_BYPASS = ""; // Optional
+var AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT = {
+    "Character Event Wish History": {"range_status":"E44","range_toggle":"E37", "gacha_type":301},
+    "Permanent Wish History": {"range_status":"E45","range_toggle":"E38", "gacha_type":200},
+    "Weapon Event Wish History": {"range_status":"E46","range_toggle":"E39", "gacha_type":302},
+    "Novice Wish History": {"range_status":"E47","range_toggle":"E40", "gacha_type":100},
+  };
 
+var  AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
+"English": {"code": "en","full_code":"en-us","4_star":" (4-Star)","5_star":" (5-Star)"},
+"German": {"code": "de","full_code":"de-de","4_star":" (4 Sterne)","5_star":" (5 Sterne)"},
+"French": {"code": "fr","full_code":"fr-fr","4_star":" (4★)","5_star":" (5★)"},
+"Spanish": {"code": "es","full_code":"es-es","4_star":" (4★)","5_star":" (5★)"},
+"Chinese Traditional": {"code": "zh-tw","full_code":"zh-tw","4_star":" (四星)","5_star":" (五星)"},
+"Chinese Simplified": {"code": "zh-cn","full_code":"zh-cn","4_star":" (四星)","5_star":" (五星)"},
+"Indonesian": {"code": "id","full_code":"id-id","4_star":" (4★)","5_star":" (5★)"},
+"Japanese": {"code": "ja","full_code":"ja-jp","4_star":" (★4)","5_star":" (★5)"},
+"Vietnamese": {"code": "vi","full_code":"vi-vn","4_star":" (4 sao)","5_star":" (5 sao)"},
+"Korean": {"code": "ko","full_code":"ko-kr","4_star":" (★4)","5_star":" (★5)"},
+"Portuguese": {"code": "pt","full_code":"pt-pt","4_star":" (4★)","5_star":" (5★)"},
+"Thai": {"code": "th","full_code":"th-th","4_star":" (4 ดาว)","5_star":" (5 ดาว)"},
+"Russian": {"code": "ru","full_code":"ru-ru","4_star":" (4★)","5_star":" (5★)"}
+};
+
+var AUTO_IMPORT_ADDITIONAL_QUERY = [
+"authkey_ver=1",
+"sign_type=2",
+"auth_appid=webview_gacha",
+"device_type=pc"
+];
+
+var AUTO_IMPORT_URL = "https://hk4e-api-os.mihoyo.com/event/gacha_info/api/getGachaLog";
+var AUTO_IMPORT_URL_CHINA = "https://hk4e-api.mihoyo.com/event/gacha_info/api/getGachaLog";
+
+var AUTO_IMPORT_URL_ERROR_CODE_AUTH_TIMEOUT = -101;
+var AUTO_IMPORT_URL_ERROR_CODE_AUTH_INVALID = -100;
+var AUTO_IMPORT_URL_ERROR_CODE_LANGUAGE_CODE = -108;
+var AUTO_IMPORT_URL_ERROR_CODE_REQUEST_PARAMS = -104;
+
+// Wish Tally Const
 var WISH_TALLY_CHARACTER_EVENT_WISH_SHEET_NAME = "Character Event Wish History";
 var WISH_TALLY_WEAPON_EVENT_WISH_SHEET_NAME = "Weapon Event Wish History";
 var WISH_TALLY_PERMANENT_WISH_SHEET_NAME = "Permanent Wish History";
@@ -18,6 +58,9 @@ var WISH_TALLY_CHARACTERS_SHEET_NAME = "Characters";
 var WISH_TALLY_WEAPONS_SHEET_NAME = "Weapons";
 var WISH_TALLY_RESULTS_SHEET_NAME = "Results";
 var WISH_TALLY_README_SHEET_NAME = "README";
+var WISH_TALLY_AVAILABLE_SHEET_NAME = "Available";
+var WISH_TALLY_ALL_WISH_HISTORY_SHEET_NAME = "All Wish History";
+var WISH_TALLY_ITEMS_SHEET_NAME = "Items";
 var WISH_TALLY_NAME_OF_WISH_HISTORY = [WISH_TALLY_CHARACTER_EVENT_WISH_SHEET_NAME, WISH_TALLY_PERMANENT_WISH_SHEET_NAME, WISH_TALLY_WEAPON_EVENT_WISH_SHEET_NAME, WISH_TALLY_NOVICE_WISH_SHEET_NAME];
 
 // AutoHotkey Const
