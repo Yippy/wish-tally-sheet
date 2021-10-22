@@ -1,3 +1,6 @@
+/**
+* @OnlyCurrentDoc
+*/
 var sheetSourceId = '1mTeEQs1nOViQ-_BVHkDSZgfKGsYiLATe1mFQxypZQWA';
 var nameOfWishHistorys = ["Character Event Wish History", "Permanent Wish History", "Weapon Event Wish History", "Novice Wish History"];
 
@@ -23,6 +26,17 @@ function onOpen( ){
   .addItem('Get Latest README', 'displayReadme')
   .addItem('About', 'displayAbout')
   .addToUi();
+}
+
+/**
+ * Return the id of the sheet. (by name)
+ *
+ * @return The ID of the sheet
+ * @customfunction
+ */
+function GET_SHEET_ID(sheetName) {
+    var sheetId = SpreadsheetApp.getActive().getSheetByName(sheetName).getSheetId();
+    return sheetId;
 }
 
 function displayAbout() {
@@ -60,15 +74,60 @@ function displayReadme() {
         // If exist remove from spreadsheet
         SpreadsheetApp.getActiveSpreadsheet().deleteSheet(sheetToRemove);
       }
-    var sheetREADMESource = sheetSource.getSheetByName('README');
+    var sheetREADMESource;
+
+    // Add Language
+    var settingsSheet = SpreadsheetApp.getActive().getSheetByName("Settings");
+    if (settingsSheet) {
+      var languageFound = settingsSheet.getRange(2, 2).getValue();
+      sheetREADMESource = sheetSource.getSheetByName("README"+"-"+languageFound);
+    }
+    if (sheetREADMESource) {
+      // Found language
+    } else {
+      // Default
+      sheetREADMESource = sheetSource.getSheetByName("README");
+    }
+
     sheetREADMESource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('README');
-    
+
     // Remove placeholder if available
     if(placeHolderSheet) {
       // If exist remove from spreadsheet
       SpreadsheetApp.getActiveSpreadsheet().deleteSheet(placeHolderSheet);
     }
     var sheetREADME = SpreadsheetApp.getActive().getSheetByName('README');
+    // Refresh Contents Links
+    var contentsAvailable = sheetREADME.getRange(13, 1).getValue();
+    var contentsStartIndex = 15;
+    
+    for (var i = 0; i < contentsAvailable; i++) {
+      var valueRange = sheetREADME.getRange(contentsStartIndex+i, 1).getValue();
+      var formulaRange = sheetREADME.getRange(contentsStartIndex+i, 1).getFormula();
+      // Display for user, doesn't do anything
+      sheetREADME.getRange(contentsStartIndex+i, 1).setFormula(formulaRange);
+ 
+      // Grab URL RichTextValue from Source
+      const range = sheetREADMESource.getRange(contentsStartIndex+i, 1);
+      const RichTextValue = range.getRichTextValue().getRuns();
+      const res = RichTextValue.reduce((ar, e) => {
+        const url = e.getLinkUrl();
+        if (url) ar.push(url);
+          return ar;
+        }, []);
+      //  Convert to string
+      var resString = res+ "";
+      var arrayString = resString.split("=");
+      if (arrayString.length > 1) {
+        var text = arrayString[2];
+        const richText = SpreadsheetApp.newRichTextValue()
+          .setText(valueRange)
+          .setLinkUrl(["#gid="+GET_SHEET_ID("README")+'range='+text])
+          .build();
+        sheetREADME.getRange(contentsStartIndex+i, 1).setRichTextValue(richText);
+      }
+    }
+ 
     SpreadsheetApp.getActive().setActiveSheet(sheetREADME);
   } else {
     var message = 'Unable to connect to source';
