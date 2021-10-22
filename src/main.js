@@ -1,6 +1,10 @@
 /*
- * Version 2.8 made by yippym
+* Version 2.91 made by yippym - 2021-04-15 02:25
  */
+
+/* Add URL here to avoid showing on Sheet */
+var urlForAPIByPass = "";
+/* (optional) */
 
 var sheetSourceId = '1mTeEQs1nOViQ-_BVHkDSZgfKGsYiLATe1mFQxypZQWA';
 var nameOfWishHistorys = ["Character Event Wish History", "Permanent Wish History", "Weapon Event Wish History", "Novice Wish History"];
@@ -34,13 +38,253 @@ function onOpen( ){
              .addItem('Import', 'importDataManagement')
              .addSeparator()
              .addItem('Set Schedule', 'setTriggerDataManagement')
-             .addItem('Remove All Schedule', 'removeTriggerDataManagement'))
+             .addItem('Remove All Schedule', 'removeTriggerDataManagement')
+             .addSeparator()
+             .addItem('Auto Import', 'importFromAPI')
+             )
   .addSeparator()
   .addItem('Quick Update', 'quickUpdate')
   .addItem('Update Items', 'updateItemsList')
   .addItem('Get Latest README', 'displayReadme')
   .addItem('About', 'displayAbout')
   .addToUi();
+}
+
+var bannerSettingsForImport = {
+  "Character Event Wish History": {"range_status":"E44","range_toggle":"E37", "gacha_type":301},
+  "Permanent Wish History": {"range_status":"E45","range_toggle":"E38", "gacha_type":200},
+  "Weapon Event Wish History": {"range_status":"E46","range_toggle":"E39", "gacha_type":302},
+  "Novice Wish History": {"range_status":"E47","range_toggle":"E40", "gacha_type":100},
+};
+
+var languageSettingsForImport = {
+  "English": {"code": "en","full_code":"en-us","4_star":" (4-Star)","5_star":" (5-Star)"},
+  "German": {"code": "de","full_code":"de-de","4_star":" (4 Sterne)","5_star":" (5 Sterne)"},
+  "French": {"code": "fr","full_code":"fr-fr","4_star":" (4★)","5_star":" (5★)"},
+  "Spanish": {"code": "es","full_code":"es-es","4_star":" (4★)","5_star":" (5★)"},
+  "Chinese Traditional": {"code": "zh-tw","full_code":"zh-tw","4_star":" (四星)","5_star":" (五星)"},
+  "Chinese Simplified": {"code": "zh-cn","full_code":"zh-cn","4_star":" (四星)","5_star":" (五星)"},
+  "Indonesian": {"code": "id","full_code":"id-id","4_star":" (4★)","5_star":" (5★)"},
+  "Japanese": {"code": "ja","full_code":"ja-jp","4_star":" (★4)","5_star":" (★5)"},
+  "Vietnamese": {"code": "vi","full_code":"vi-vn","4_star":" (4 sao)","5_star":" (5 sao)"},
+  "Korean": {"code": "ko","full_code":"ko-kr","4_star":" (★4)","5_star":" (★5)"},
+  "Portuguese": {"code": "pt","full_code":"pt-pt","4_star":" (4★)","5_star":" (5★)"},
+  "Thai": {"code": "th","full_code":"th-th","4_star":" (4 ดาว)","5_star":" (5 ดาว)"},
+  "Russian": {"code": "ru","full_code":"ru-ru","4_star":" (4★)","5_star":" (5★)"}
+};
+
+var additionalQuery = [
+  "authkey_ver=1",
+  "sign_type=2",
+  "auth_appid=webview_gacha",
+  "device_type=pc"
+];
+
+var url = "https://hk4e-api.mihoyo.com/event/gacha_info/api/getGachaLog"
+
+var errorCodeAuthTimeout = -101;
+var errorCodeAuthInvalid = -100;
+var errorCodeLanguageCode = -108;
+var errorCodeNotEncountered = true;
+
+function importFromAPI() {
+  var settingsSheet = SpreadsheetApp.getActive().getSheetByName('Settings');
+  settingsSheet.getRange("E42").setValue(new Date());
+  settingsSheet.getRange("E43").setValue("");
+
+  var urlForAPI = settingsSheet.getRange("D35").getValue();
+  if (urlForAPIByPass != "") {
+    urlForAPI = urlForAPIByPass;
+  }
+  urlForAPI = urlForAPI.toString().split("&");
+  var foundAuth = "";
+  for (var i = 0; i < urlForAPI.length; i++) {
+    var queryString = urlForAPI[i].toString().split("=");
+    if (queryString.length == 2) {
+      if (queryString[0] == "authkey") {
+        foundAuth = queryString[1];
+        break;
+      }
+    }
+  }
+  var bannerName;
+  var bannerSheet;
+  var bannerSettings;
+  if (foundAuth == "") {
+    // Display auth key not available
+    for (var i = 0; i < nameOfWishHistorys.length; i++) {
+      bannerName = nameOfWishHistorys[i];
+      bannerSettings = bannerSettingsForImport[bannerName];
+      settingsSheet.getRange(bannerSettings['range_status']).setValue("No auth key");
+    }
+  } else {
+    var selectedLanguageCode = settingsSheet.getRange("B2").getValue();
+    var languageSettings = languageSettingsForImport[selectedLanguageCode];
+    if (languageSettings == null) {
+      // Get default language
+      languageSettings = languageSettingsForImport["English"];
+    }
+
+    var urlForWishHistory = url+"?"+additionalQuery.join("&")+"&authkey="+foundAuth+"&lang="+languageSettings['code'];
+    
+    errorCodeNotEncountered = true;
+    // Clear status
+    for (var i = 0; i < nameOfWishHistorys.length; i++) {
+      bannerName = nameOfWishHistorys[i];
+      bannerSettings = bannerSettingsForImport[bannerName];
+      settingsSheet.getRange(bannerSettings['range_status']).setValue("");
+    }
+    for (var i = 0; i < nameOfWishHistorys.length; i++) {
+      if (errorCodeNotEncountered) {
+        bannerName = nameOfWishHistorys[i];
+        bannerSettings = bannerSettingsForImport[bannerName];
+        var isToggled = settingsSheet.getRange(bannerSettings['range_toggle']).getValue();
+        if (isToggled == true) {
+          bannerSheet = SpreadsheetApp.getActive().getSheetByName(bannerName);
+          if (bannerSheet) {
+            checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, languageSettings, settingsSheet);
+          } else {
+            settingsSheet.getRange(bannerSettings['range_status']).setValue("Missing sheet");
+          }
+        } else {
+          settingsSheet.getRange(bannerSettings['range_status']).setValue("Skipped");
+        }
+      } else {
+        settingsSheet.getRange(bannerSettings['range_status']).setValue("Skipped - Error");
+      }
+    }
+  }
+  settingsSheet.getRange("E43").setValue(new Date());
+  if (errorCodeNotEncountered) {
+    settingsSheet.getRange("D35").setValue("");
+  }
+}
+
+function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, languageSettings, settingsSheet) {
+  settingsSheet.getRange(bannerSettings['range_status']).setValue("Starting");
+  /* Get latest wish from banner */
+  var iLastRow = bannerSheet.getRange(2, 5, bannerSheet.getLastRow(), 1).getValues().filter(String).length;
+  var lastWishDateAndTimeString;
+  var lastWishDateAndTime;
+  if (iLastRow && iLastRow != 0 ) {
+    iLastRow++;
+    lastWishDateAndTimeString = bannerSheet.getRange("E" + iLastRow).getValue();
+    if (lastWishDateAndTimeString) {
+      settingsSheet.getRange(bannerSettings['range_status']).setValue("Last wish: "+lastWishDateAndTimeString);
+      lastWishDateAndTimeString = lastWishDateAndTimeString.split(" ").join("T");
+      lastWishDateAndTime = new Date(lastWishDateAndTimeString+".000Z");
+    } else {
+      iLastRow = 1;
+      settingsSheet.getRange(bannerSettings['range_status']).setValue("No previous wishes");
+    }
+    iLastRow++; // Move last row to new row
+  } else {
+    iLastRow = 2; // Move last row to new row
+    settingsSheet.getRange(bannerSettings['range_status']).setValue("");
+  }
+  
+  var extractWishes = [];
+  var page = 1;
+  var queryBannerCode = bannerSettings["gacha_type"];
+  var numberOfWishPerPage = 6;
+  var urlForBanner = urlForWishHistory+"&gacha_type="+queryBannerCode+"&size="+numberOfWishPerPage;
+  var failed = 0;
+  var is_done = false;
+  var end_id = 0;
+  
+  var checkPreviousDateAndTimeString = "";
+  var overrideIndex = 0;
+  while (!is_done) {
+    settingsSheet.getRange(bannerSettings['range_status']).setValue("Loading page: "+page);
+    var response = UrlFetchApp.fetch(urlForBanner+"&page="+page+"&end_id="+end_id);
+    var jsonResponse = response.getContentText();
+    var jsonDict = JSON.parse(jsonResponse);
+    var jsonDictData = jsonDict["data"];
+    if (jsonDictData) {
+      var listOfWishes = jsonDictData["list"];
+      var isDone = false;
+      var listOfWishesLength = listOfWishes.length;
+      var wish;
+      if (listOfWishesLength > 0) {
+        for (var i = 0; i < listOfWishesLength; i++) {
+          wish = listOfWishes[i];
+          var dateAndTimeString = wish['time'];
+          var textWish = wish['item_type']+wish['name'];
+          /* Mimic the website in showing specific language wording */
+          if (wish['rank_type'] == 4) {
+            textWish += languageSettings["4_star"];
+          } else if (wish['rank_type'] == 5) {
+            textWish += languageSettings["5_star"];
+          }
+          textWish += dateAndTimeString;
+
+          var dateAndTimeStringModified = dateAndTimeString.split(" ").join("T");
+          var wishDateAndTime = new Date(dateAndTimeStringModified+".000Z");
+          if (checkPreviousDateAndTimeString === dateAndTimeString) {
+            if (overrideIndex == 0) {
+              var previousWishIndex = extractWishes.length - 1;
+              var previousWish = extractWishes[previousWishIndex];
+              overrideIndex = 10;
+              previousWish[1] = overrideIndex;
+              extractWishes[previousWishIndex] = previousWish;
+            }
+            overrideIndex--;
+          } else {
+            checkPreviousDateAndTimeString = dateAndTimeString;
+            overrideIndex = 0;
+          }
+          if (lastWishDateAndTime >= wishDateAndTime ) {
+            // Banner already got this wish
+            is_done = true;
+            break;
+          } else {
+            extractWishes.push([textWish, (overrideIndex > 0 ? overrideIndex:null)]);
+          }
+        }
+        if (numberOfWishPerPage == listOfWishesLength) {
+          // There could be more wishes on the next page
+          end_id = wish['id'];
+          page++;
+        } else {
+          // If list isn't the size requested, it would mean there is no more wishes.
+          is_done = true;
+        }
+      } else {
+        is_done = true;
+      }
+    } else {
+      var message = jsonDict["message"];
+      var title ="Error code: "+jsonDict["retcode"];
+      SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+      if (errorCodeAuthTimeout == jsonDict["retcode"]) {
+        errorCodeNotEncountered = false;
+        is_done = true;
+        settingsSheet.getRange(bannerSettings['range_status']).setValue("auth timeout");
+      } else if (errorCodeAuthInvalid == jsonDict["retcode"]) {
+        errorCodeNotEncountered = false;
+        is_done = true;
+        settingsSheet.getRange(bannerSettings['range_status']).setValue("auth invalid");
+      }
+      
+      failed++;
+      if (failed > 2){
+        is_done = true;
+      }
+    }
+  }
+  if (failed > 2){
+    settingsSheet.getRange(bannerSettings['range_status']).setValue("Failed too many times");
+  } else {
+    if (errorCodeNotEncountered) {
+      if (extractWishes.length > 0) {
+        settingsSheet.getRange(bannerSettings['range_status']).setValue("Found: "+extractWishes.length);
+        extractWishes.reverse();
+        bannerSheet.getRange(iLastRow, 1, extractWishes.length, 2).setValues(extractWishes);
+      } else {
+        settingsSheet.getRange(bannerSettings['range_status']).setValue("Nothing to add");
+      }
+    }
+  }
 }
 
 var triggerOnString = "ON";
@@ -313,6 +557,26 @@ function importDataManagement() {
           }
         }
         
+        //Restore Constellation
+        var sourceConstellationSheet = importSource.getSheetByName("Constellation");
+        if (sourceConstellationSheet) {
+          saveCollectionSettings(sourceConstellationSheet, settingsSheet,"G7","H7");
+          var constellationSheet = SpreadsheetApp.getActive().getSheetByName('Constellation');
+          if (constellationSheet) {
+            restoreCollectionSettings(constellationSheet, settingsSheet,"G7","H7");
+          }
+        }
+
+        //Restore Weapons
+        var sourceWeaponsSheet = importSource.getSheetByName("Weapons");
+        if (sourceWeaponsSheet) {
+          saveCollectionSettings(sourceWeaponsSheet, settingsSheet,"G8","H8");
+          var weaponsSheet = SpreadsheetApp.getActive().getSheetByName('Weapons');
+          if (weaponsSheet) {
+            restoreCollectionSettings(weaponsSheet, settingsSheet,"G8","H8");
+          }
+        }
+
         title = "Complete";
         message = "Imported all rows in column Paste Value and Override";
         statusMessage = completeStatus;
@@ -338,8 +602,12 @@ function importDataManagement() {
  * @customfunction
  */
 function GET_SHEET_ID(sheetName) {
-    var sheetId = SpreadsheetApp.getActive().getSheetByName(sheetName).getSheetId();
-    return sheetId;
+  var sheet = SpreadsheetApp.getActive().getSheetByName(sheetName);
+  var sheetId = "";
+  if (sheet) {
+    sheetId = sheet.getSheetId();
+  }
+  return sheetId;
 }
 
 /**
@@ -436,18 +704,39 @@ function displayReadme() {
         var text = arrayString[2];
         const richText = SpreadsheetApp.newRichTextValue()
           .setText(valueRange)
-          .setLinkUrl(["#gid="+GET_SHEET_ID("README")+'range='+text])
+          .setLinkUrl(["#gid="+sheetREADME.getSheetId()+'range='+text])
           .build();
         sheetREADME.getRange(contentsStartIndex+i, 1).setRichTextValue(richText);
       }
     }
- 
+    reorderSheets();
     SpreadsheetApp.getActive().setActiveSheet(sheetREADME);
-    SpreadsheetApp.getActive().moveActiveSheet(1);
   } else {
     var message = 'Unable to connect to source';
     var title = 'Error';
     SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+  }
+}
+
+function reorderSheets() {
+  var settingsSheet = SpreadsheetApp.getActive().getSheetByName("Settings");
+  if (settingsSheet) {
+    var sheetsToSort = settingsSheet.getRange(28,2,15,1).getValues();
+
+    for (var i = 0; i < sheetsToSort.length; i++) {
+      var sheetName = sheetsToSort[i];
+      if (sheetName != "") {
+        var sheet = SpreadsheetApp.getActive().getSheetByName(sheetName);
+        if (sheet) {
+          SpreadsheetApp.getActive().setActiveSheet(sheet);
+          var position = i+1;
+          if (position >= SpreadsheetApp.getActive().getNumSheets()) {
+            position = SpreadsheetApp.getActive().getNumSheets();
+          }
+          SpreadsheetApp.getActive().moveActiveSheet(position);
+        }
+      }
+    }
   }
 }
 
@@ -649,34 +938,117 @@ function saveEventsSettings(eventsSheet, settingsSheet) {
   var eventsValueRange = eventsSheet.getRange(2,8, eventsSheet.getMaxRows()-1,1).getValues();
   eventsValueRange = String(eventsValueRange).split(",");
   var eventFormulaRanges = eventsSheet.getRange(2,8, eventsSheet.getMaxRows()-1,1).getFormulas();
-  var saveDate = [];
+  var saveData = [];
   for (var ii = 0; ii < eventFormulaRanges.length; ii++) {
     var formulaData = eventFormulaRanges[ii];
     if (formulaData == "") {
       var valueData = eventsValueRange[ii];
       if (valueData == "true") {
-        saveDate.push("TRUE");
+        saveData.push("TRUE");
       } else if (valueData == "false") {
-        saveDate.push("");
+        saveData.push("");
       } else {
-        saveDate.push(eventsValueRange[ii]);
+        saveData.push(eventsValueRange[ii]);
       }
     } else {
-      saveDate.push("");
+      saveData.push("");
     }
   }
-  settingsSheet.getRange("G4").setValue(saveDate.join(","));
+  settingsSheet.getRange("G4").setValue(saveData.join(","));
 }
 
 function restoreEventsSettings(sheetEvents, settingsSheet) {
-  var saveDate = settingsSheet.getRange("G4").getValue().split(",");
-  for (var ii = 0; ii < saveDate.length; ii++) {
-    var valueData = saveDate[ii];
+  var saveData = settingsSheet.getRange("G4").getValue().split(",");
+  for (var ii = 0; ii < saveData.length; ii++) {
+    var valueData = saveData[ii];
     if (valueData == "TRUE") {
       sheetEvents.getRange(2 + ii,8).setValue(true);
     } else if (valueData) {
       if (valueData != "") {
         sheetEvents.getRange(2 + ii,8).setValue(valueData);
+      }
+    }
+  }
+}
+
+function saveCollectionSettings(constellationsSheet, settingsSheet, itemsRange, optionsRange) {
+  var maxColumns = constellationsSheet.getMaxColumns();
+
+  var saveData = [];
+  var columnValue = constellationsSheet.getRange(1, 2).getValue();
+
+  if (columnValue > 0) {
+    var startValue = constellationsSheet.getRange(1, columnValue).getValue();
+    var nextValue = constellationsSheet.getRange(1, columnValue+1).getValue();
+    var userInputColumnValue = constellationsSheet.getRange(1, columnValue+2).getValue();
+    var saveRowsValue = constellationsSheet.getRange(1, columnValue+4).getValue();
+    for (var c = startValue; c <= maxColumns; c += nextValue) {
+      var nameValue = constellationsSheet.getRange(1, c).getValue();
+      if (nameValue != "") {
+        var dataUserInput = nameValue;
+        var saveValues = constellationsSheet.getRange(16, c - userInputColumnValue,saveRowsValue,1).getValues();
+        saveData.push(dataUserInput+"="+saveValues.join("="));
+      }
+    }
+    if (saveData.length > 0) {
+      settingsSheet.getRange(itemsRange).setValue(saveData.join(","));
+    }
+  }
+  var contentValue = constellationsSheet.getRange(1, 1).getValue();
+  if (contentValue > 0) {
+    var lengthValue = constellationsSheet.getRange(contentValue+2, 1).getValue();
+    if (lengthValue > 0) {
+      saveData = constellationsSheet.getRange(contentValue+3, 1,lengthValue,1).getValues();
+      settingsSheet.getRange(optionsRange).setValue(saveData.join(","));
+    }
+  }
+}
+
+function restoreCollectionSettings(constellationsSheet, settingsSheet, itemsRange, optionsRange) {
+  var saveData = settingsSheet.getRange(itemsRange).getValue().split(",");
+  var saveDict = [];
+  for (var i = 0; i < saveData.length; i++) {
+    var valuesSorting = saveData[i].split("=");
+    if (valuesSorting.length > 2) {
+      var nameData = valuesSorting[0];
+      valuesSorting.splice(0, 1);
+      saveDict[nameData] = valuesSorting;
+    }
+  }
+  var maxColumns = constellationsSheet.getMaxColumns();
+  var columnValue = constellationsSheet.getRange(1, 2).getValue();
+  if (columnValue > 0) {
+    var startValue = constellationsSheet.getRange(1, columnValue).getValue();
+    var nextValue = constellationsSheet.getRange(1, columnValue+1).getValue();
+    var userInputColumnValue = constellationsSheet.getRange(1, columnValue+2).getValue();
+    var saveRowsValue = constellationsSheet.getRange(1, columnValue+4).getValue();
+    for (var c = startValue; c <= maxColumns; c += nextValue) {
+      var nameValue = constellationsSheet.getRange(1, c).getValue();
+      if (nameValue != "") {
+        var values = saveDict[nameValue];
+        if (values) {
+          var dataArray = [];
+          for (var i = 0; i < values.length; i++) {
+            dataArray.push([values[i]]);
+          }
+          constellationsSheet.getRange(16, c - userInputColumnValue,saveRowsValue,1).setValues(dataArray);
+        }
+      }
+    }
+  }
+  var contentValue = constellationsSheet.getRange(1, 1).getValue();
+  if (contentValue > 0) {
+    saveData = settingsSheet.getRange(optionsRange).getValue().split(",");
+    var lengthValue = constellationsSheet.getRange(contentValue+2, 1).getValue();
+    if (lengthValue > 0) {
+      for (var i = 0; i < saveData.length; i++) {
+        var isToggledOn = true;
+        if (saveData[i]=="false") {
+          isToggledOn = false;
+        }
+        if(constellationsSheet.getRange(contentValue+3+i, 1).getValue() != isToggledOn) {
+          constellationsSheet.getRange(contentValue+3+i, 1).setValue(isToggledOn)
+        }
       }
     }
   }
@@ -763,6 +1135,12 @@ function restoreResultsSettings(sheetResults, settingsSheet) {
   }
 }
 
+
+var quickUpdateRange = [
+  "A2","M2","Y2","AK2", // Banner Images
+  "A3","M3","Y3" // Banner Time
+];
+
 function quickUpdate() {
   var settingsSheet = SpreadsheetApp.getActive().getSheetByName("Settings");
   var sheetSource = SpreadsheetApp.openById(sheetSourceId);
@@ -773,28 +1151,22 @@ function quickUpdate() {
       if (sheetSource) {
         var sheetPityCheckerSource = sheetSource.getSheetByName("Pity Checker");
         if (sheetPityCheckerSource) {
-          var formula;
-          var value;
-          // Banner Images
-          formula = sheetPityCheckerSource.getRange('A2').getFormula();
-          sheetPityChecker.getRange('A2').setFormula(formula);
-          formula = sheetPityCheckerSource.getRange('M2').getFormula();
-          sheetPityChecker.getRange('M2').setFormula(formula);
-          formula = sheetPityCheckerSource.getRange('Y2').getFormula();
-          sheetPityChecker.getRange('Y2').setFormula(formula);
-          formula = sheetPityCheckerSource.getRange('AK2').getFormula();
-          sheetPityChecker.getRange('AK2').setFormula(formula);
-          
-          // Banner Time
-          value = sheetPityCheckerSource.getRange('A3').getValue();
-          sheetPityChecker.getRange('A3').setValue(value);
-          value = sheetPityCheckerSource.getRange('M3').getValue();
-          sheetPityChecker.getRange('M3').setValue(value);
-          value = sheetPityCheckerSource.getRange('Y3').getValue();
-          sheetPityChecker.getRange('Y3').setValue(value);
+          for (var i = 0; i < quickUpdateRange.length; i++) {
+            var range = quickUpdateRange[i];
+            var formula = sheetPityCheckerSource.getRange(range).getFormula();
+            if(formula) {
+              sheetPityChecker.getRange(range).setFormula(formula);
+            } else {
+              var value = sheetPityCheckerSource.getRange(range).getValue();
+              sheetPityChecker.getRange(range).setValue(value);
+            }
+          }
         }
       }
     }
+    var currentSheet = SpreadsheetApp.getActive().getActiveSheet();
+    reorderSheets();
+    SpreadsheetApp.getActive().setActiveSheet(currentSheet);
   }
 }
 
@@ -836,7 +1208,7 @@ function updateItemsList() {
       }
     }
     // Remove sheets
-    var listOfSheetsToRemove = ["Items","Events", "Pity Checker","Results","All Wish History", "Constellation"];
+    var listOfSheetsToRemove = ["Items","Events", "Pity Checker","Results","All Wish History", "Constellation", "Weapons"];
 
     var sheetAvailableSource = sheetSource.getSheetByName("Available");
     var availableRanges = sheetAvailableSource.getRange(2,1, sheetAvailableSource.getMaxRows()-1,1).getValues();
@@ -859,6 +1231,10 @@ function updateItemsList() {
             saveResultsSettings(sheetToRemove, settingsSheet);
           } else if (sheetNameToRemove == "Events") {
             saveEventsSettings(sheetToRemove, settingsSheet);
+          } else if (sheetNameToRemove == "Constellation") {
+            saveCollectionSettings(sheetToRemove, settingsSheet,"G7","H7");
+          } else if (sheetNameToRemove == "Weapons") {
+            saveCollectionSettings(sheetToRemove, settingsSheet,"G8","H8");
           }
         }
 
@@ -912,23 +1288,19 @@ function updateItemsList() {
         shouldShowSheet = false;
       }
     }
-      
+    var sheetEvents;
     if (shouldShowSheet) {
       var sheetEventsSource = sheetSource.getSheetByName('Events');
-      var sheetEvents = sheetEventsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Events');
+      sheetEvents = sheetEventsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Events');
       
       if (settingsSheet) {
         restoreEventsSettings(sheetEvents, settingsSheet);
       }
-      SpreadsheetApp.getActive().setActiveSheet(sheetEvents);
-      SpreadsheetApp.getActive().moveActiveSheet(1);
     }
 
     var sheetPityCheckerSource = sheetSource.getSheetByName('Pity Checker');
     var sheetPityChecker = sheetPityCheckerSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Pity Checker');
 
-    SpreadsheetApp.getActive().setActiveSheet(sheetPityChecker);
-    SpreadsheetApp.getActive().moveActiveSheet(1);
 
     if (settingsSheet) {
       restorePityCheckerSettings(sheetPityChecker, settingsSheet);
@@ -946,7 +1318,7 @@ function updateItemsList() {
         shouldShowSheet = false;
       }
     }
-      
+    var sheetResults;
     if (shouldShowSheet) {
       // Add Language
       var sheetResultsSource;
@@ -960,13 +1332,11 @@ function updateItemsList() {
         // Default
         sheetResultsSource = sheetSource.getSheetByName("Results");
       }
-      var sheetResults = sheetResultsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Results');
+      sheetResults = sheetResultsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Results');
       
       if (settingsSheet) {
         restoreResultsSettings(sheetResults, settingsSheet);
       }
-      SpreadsheetApp.getActive().setActiveSheet(sheetResults);
-      SpreadsheetApp.getActive().moveActiveSheet(1);
     }
     // Show Constellation
     shouldShowSheet = true;
@@ -976,6 +1346,7 @@ function updateItemsList() {
         shouldShowSheet = false;
       }
     }
+    var sheetConstellation;
     if (shouldShowSheet) {
       // Add Language
       var sheetConstellationSource;
@@ -989,31 +1360,93 @@ function updateItemsList() {
         // Default
         sheetConstellationSource = sheetSource.getSheetByName("Constellation");
       }
-      var sheetConstellation = sheetConstellationSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Constellation');
-      // Refresh Contents Links
-      var contentsAvailable = sheetConstellation.getRange(1, 1).getValue();
-      var contentsStartIndex = 2;
-      
-      for (var i = 0; i < contentsAvailable; i++) {
-        var valueRange = sheetConstellation.getRange(contentsStartIndex+i, 3).getValue();
-        var formulaRange = sheetConstellation.getRange(contentsStartIndex+i, 3).getFormula();
-        var textRange = formulaRange.split(",");
-        var bookmarkRange = formulaRange.split("=");
-        if (textRange.length > 1) {
-          textRange = textRange[1].split(")")[0];
+      if (sheetConstellationSource) {
+        sheetConstellation = sheetConstellationSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Constellation');
+        // Refresh Contents Links
+        var contentsAvailable = sheetConstellation.getRange(1, 1).getValue();
+        var contentsStartIndex = 2;
+        var richTextValues = [];
+        for (var i = 0; i < contentsAvailable; i++) {
+          var valueRange = sheetConstellation.getRange(contentsStartIndex+i, 3).getValue();
+          var formulaRange = sheetConstellation.getRange(contentsStartIndex+i, 3).getFormula();
+          var textRange = formulaRange.split(",");
+          var bookmarkRange = formulaRange.split("=");
+          if (textRange.length > 1) {
+            textRange = textRange[1].split(")")[0];
+          }
+          if (bookmarkRange.length > 2) {
+            bookmarkRange = bookmarkRange[3].split('"')[0];
+          }
+          const richText = SpreadsheetApp.newRichTextValue()
+          .setText(valueRange)
+          .setLinkUrl(["#gid="+sheetConstellation.getSheetId()+'range='+bookmarkRange])
+          .build();
+          richTextValues.push([richText]);
         }
-        if (bookmarkRange.length > 2) {
-          bookmarkRange = bookmarkRange[3].split('"')[0];
+        var richTextValuesLength = richTextValues.length;
+        if (richTextValuesLength > 0) {
+          sheetConstellation.getRange(contentsStartIndex, 3, richTextValuesLength, 1).setRichTextValues(richTextValues);
         }
-        const richText = SpreadsheetApp.newRichTextValue()
-            .setText(valueRange)
-            .setLinkUrl(["#gid="+GET_SHEET_ID("Constellation")+'range='+bookmarkRange])
-            .build();
-        sheetConstellation.getRange(contentsStartIndex+i, 3).setRichTextValue(richText);
+        if (settingsSheet) {
+          restoreCollectionSettings(sheetConstellation, settingsSheet,"G7","H7");
+        }
+        
       }
-      
-      SpreadsheetApp.getActive().setActiveSheet(sheetConstellation);
-      SpreadsheetApp.getActive().moveActiveSheet(1);
+    }
+    // Show Weapons
+    shouldShowSheet = true;
+    if (settingsSheet) {
+      if (settingsSheet.getRange("B22").getValue()) {
+      } else {
+        shouldShowSheet = false;
+      }
+    }
+    var sheetWeapons;
+    if (shouldShowSheet) {
+      // Add Language
+      var sheetWeaponsSource;
+      if (settingsSheet) {
+        var languageFound = settingsSheet.getRange(2, 2).getValue();
+        sheetWeaponsSource = sheetSource.getSheetByName("Weapons"+"-"+languageFound);
+      }
+      if (sheetWeaponsSource) {
+        // Found language
+      } else {
+        // Default
+        sheetWeaponsSource = sheetSource.getSheetByName("Weapons");
+      }
+      if (sheetWeaponsSource) {
+        sheetWeapons = sheetWeaponsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Weapons');
+        // Refresh Contents Links
+        var contentsAvailable = sheetWeapons.getRange(1, 1).getValue();
+        var contentsStartIndex = 2;
+        var richTextValues = [];
+        for (var i = 0; i < contentsAvailable; i++) {
+          var valueRange = sheetWeapons.getRange(contentsStartIndex+i, 3).getValue();
+          var formulaRange = sheetWeapons.getRange(contentsStartIndex+i, 3).getFormula();
+          var textRange = formulaRange.split(",");
+          var bookmarkRange = formulaRange.split("=");
+          if (textRange.length > 1) {
+            textRange = textRange[1].split(")")[0];
+          }
+          if (bookmarkRange.length > 2) {
+            bookmarkRange = bookmarkRange[3].split('"')[0];
+          }
+          const richText = SpreadsheetApp.newRichTextValue()
+          .setText(valueRange)
+          .setLinkUrl(["#gid="+sheetWeapons.getSheetId()+'range='+bookmarkRange])
+          .build();
+          richTextValues.push([richText]);
+        }
+        var richTextValuesLength = richTextValues.length;
+        if (richTextValuesLength > 0) {
+          sheetConstellation.getRange(contentsStartIndex, 3, richTextValuesLength, 1).setRichTextValues(richTextValues);
+        }
+        if (settingsSheet) {
+          restoreCollectionSettings(sheetWeapons, settingsSheet,"G8","H8");
+        }
+        
+      }
     }
     // Put available sheet into current
     var skipRanges = sheetAvailableSource.getRange(2,2, sheetAvailableSource.getMaxRows()-1,1).getValues();
@@ -1068,10 +1501,12 @@ function updateItemsList() {
       // If exist remove from spreadsheet
       SpreadsheetApp.getActiveSpreadsheet().deleteSheet(placeHolderSheet);
     }
-    // Bring Pity Checker into view
-    var sheetPityChecker = SpreadsheetApp.getActive().getSheetByName('Pity Checker');
-    SpreadsheetApp.getActive().setActiveSheet(sheetPityChecker);
     
+    reorderSheets();
+    // Bring Pity Checker into view
+    
+    SpreadsheetApp.getActive().setActiveSheet(sheetPityChecker);
+
     // Update Settings
     settingsSheet.getRange(5, 7).setValue(false);
     settingsSheet.getRange("H6").setValue(new Date());
