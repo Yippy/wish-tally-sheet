@@ -1,6 +1,3 @@
-/**
-* @OnlyCurrentDoc
-*/
 var sheetSourceId = '1mTeEQs1nOViQ-_BVHkDSZgfKGsYiLATe1mFQxypZQWA';
 var nameOfWishHistorys = ["Character Event Wish History", "Permanent Wish History", "Weapon Event Wish History", "Novice Wish History"];
 
@@ -21,6 +18,13 @@ function onOpen( ){
   .addSubMenu(ui.createMenu('Novice Wish History')
              .addItem('Sort Range', 'sortNoviceWishHistory')
              .addItem('Refresh Formula', 'addFormulaNoviceWishHistory'))
+  .addSeparator()
+  .addSubMenu(ui.createMenu('AutoHotkey')
+             .addItem('Clear', 'clearAHK')
+             .addItem('Convert', 'convertAHK')
+             .addItem('Import', 'importAHK')
+             .addSeparator()
+             .addItem('Generate', 'generateAHK'))
   .addSeparator()
   .addItem('Update Items', 'updateItemsList')
   .addItem('Get Latest README', 'displayReadme')
@@ -195,7 +199,7 @@ function addFormulaByWishHistoryName(name) {
     var sheet = findWishHistoryByName(name,sheetSource);
 
     var wishHistorySourceNumberOfColumn = wishHistorySource.getLastColumn();
-    // Reduce one column due to paste
+    // Reduce two column due to paste and override
     var wishHistorySourceNumberOfColumnWithFormulas = wishHistorySourceNumberOfColumn - 2;
 
     var lastRowWithoutTitle = sheet.getMaxRows() - 1;
@@ -248,6 +252,7 @@ function findWishHistoryByName(name, sheetSource) {
       var sheetCopySource = sheetSource.getSheetByName("Wish History");
       sheetCopySource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName(name);
       wishHistorySheet = SpreadsheetApp.getActive().getSheetByName(name);
+      wishHistorySheet.showSheet();
     }
   }
   return wishHistorySheet;
@@ -328,7 +333,17 @@ function updateItemsList() {
     }
 
     // Remove sheets
-    var listOfSheetsToRemove = ["Items","Pity Checker","Results","Results By Date","Changelog","All Wish History"];
+    var listOfSheetsToRemove = ["Items","Pity Checker","Results","All Wish History"];
+
+    var sheetAvailableSource = sheetSource.getSheetByName("Available");
+    var availableRanges = sheetAvailableSource.getRange(2,1, sheetAvailableSource.getMaxRows()-1,1).getValues();
+    availableRanges = String(availableRanges).split(",");
+    
+    // Go through the available sheet list
+    for (var i = 0; i < availableRanges.length; i++) {
+      listOfSheetsToRemove.push(availableRanges[i]);
+    }
+ 
     var listOfSheetsToRemoveLength = listOfSheetsToRemove.length;
 
     for (var i = 0; i < listOfSheetsToRemoveLength; i++) {
@@ -398,11 +413,55 @@ function updateItemsList() {
       sheetResultsSource = sheetSource.getSheetByName("Results");
     }
     sheetResultsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Results');
-    var sheetResultsByDateSource = sheetSource.getSheetByName('Results By Date');
-    sheetResultsByDateSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Results By Date');
-    var sheetChangelogSource = sheetSource.getSheetByName('Changelog');
-    sheetChangelogSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Changelog');
-    
+
+    // Put available sheet into current
+    var skipRanges = sheetAvailableSource.getRange(2,2, sheetAvailableSource.getMaxRows()-1,1).getValues();
+    skipRanges = String(skipRanges).split(",");
+    var hiddenRanges = sheetAvailableSource.getRange(2,3, sheetAvailableSource.getMaxRows()-1,1).getValues();
+    hiddenRanges = String(hiddenRanges).split(",");
+    var settingsOptionRanges = sheetAvailableSource.getRange(2,4, sheetAvailableSource.getMaxRows()-1,1).getValues();
+    settingsOptionRanges = String(settingsOptionRanges).split(",");
+
+    for (var i = 0; i < availableRanges.length; i++) {
+      var nameOfBanner = availableRanges[i];
+      var isSkipString = skipRanges[i];
+      var isHiddenString = hiddenRanges[i];
+      var settingOptionString = settingsOptionRanges[i];
+
+      var sheetAvailableSelectionSource = sheetSource.getSheetByName(nameOfBanner);
+      var storedSheet;
+      if (isSkipString == "YES") {
+        // skip - disabled by source
+      } else {
+        if (sheetAvailableSelectionSource) {
+          if (settingOptionString == "" || settingOptionString == 0) {
+            //Enable without settings
+            storedSheet = sheetAvailableSelectionSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName(nameOfBanner);
+          } else {
+            // Check current setting has row
+            if (settingOptionString <= settingsSheet.getMaxRows()) {
+              var checkEnabledRanges = settingsSheet.getRange(settingOptionString, 2).getValue();
+              if (checkEnabledRanges == "YES") {
+                storedSheet = sheetAvailableSelectionSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName(nameOfBanner);
+              } else {
+                storedSheet = null;
+              }
+            } else {
+              // Sheet does not have this settings available
+              storedSheet = null;
+            }
+          }
+          if (storedSheet) {
+            if (isHiddenString == "YES") {
+              storedSheet.hideSheet();
+            } else {
+              storedSheet.showSheet();
+            }
+          }
+        }
+      }
+    }
+
     // Remove placeholder if available
     if(placeHolderSheet) {
       // If exist remove from spreadsheet
@@ -415,5 +474,262 @@ function updateItemsList() {
     var message = 'Unable to connect to source';
     var title = 'Error';
     SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+  }
+}
+
+function clearAHK() {
+  var autoHotkeySheet = SpreadsheetApp.getActive().getSheetByName("AutoHotkey");
+  if (autoHotkeySheet) {
+    // Clear Select Banner and date and time
+    autoHotkeySheet.getRange(1, 2, 1, 2).clearContent();
+    var deleteRows = autoHotkeySheet.getMaxRows()-6;
+    if (deleteRows > 0) {
+      autoHotkeySheet.deleteRows(6,deleteRows); 
+    }
+    // Clear all rows
+    autoHotkeySheet.getRange(4, 1, autoHotkeySheet.getMaxRows()-3, autoHotkeySheet.getMaxColumns()).clearContent();
+  } else {
+    var message = 'Enable AutoHotkey in settings, and run "Update Items"';
+    var title = 'Error AHK Disabled';
+    SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+  }
+}
+
+function clearOverrideAHK() {
+  var autoHotkeySheet = SpreadsheetApp.getActive().getSheetByName("AutoHotkey");
+  if (autoHotkeySheet) {
+    var clearRows = autoHotkeySheet.getMaxRows()-3;
+    if (clearRows > 0) {
+      autoHotkeySheet.getRange(4, 2, clearRows, 3).clearContent();
+    }
+  } else {
+    var message = 'Enable AutoHotkey in settings, and run "Update Items"';
+    var title = 'Error AHK Disabled';
+    SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+  }
+}
+
+function convertAHK() {
+  var autoHotkeySheet = SpreadsheetApp.getActive().getSheetByName("AutoHotkey");
+  if (autoHotkeySheet) {
+    clearOverrideAHK();
+    var banner = autoHotkeySheet.getRange(1, 2).getValue();
+    var iLastRow = null;
+    var lastWishDateAndTimeString = null;
+    var lastWishDateAndTime = null;
+    
+    var bannerSheet = SpreadsheetApp.getActive().getSheetByName(banner);
+    if (bannerSheet) {
+      var iLastRow = bannerSheet.getRange(2, 5, bannerSheet.getLastRow(), 1).getValues().filter(String).length;
+      if (iLastRow && iLastRow != 0 ) {
+        iLastRow++;
+        lastWishDateAndTimeString = bannerSheet.getRange("E" + iLastRow).getValue();
+        if (lastWishDateAndTimeString) {
+          autoHotkeySheet.getRange(1,3).setValue("Last wish: "+lastWishDateAndTimeString);
+          lastWishDateAndTimeString = lastWishDateAndTimeString.split(" ").join("T");
+          lastWishDateAndTime = new Date(lastWishDateAndTimeString+".000Z");
+        } else {
+          autoHotkeySheet.getRange(1,3).setValue("No previous wishes");
+        }
+      } else {
+        autoHotkeySheet.getRange(1,3).setValue("");
+      }
+      
+      // Ensure all the cells are text format
+      autoHotkeySheet.getRange(4,1, autoHotkeySheet.getMaxRows()-3,1).setNumberFormat("@");
+      var autoHotkeyRanges = autoHotkeySheet.getRange(4,1, autoHotkeySheet.getMaxRows()-3,1).getValues();
+      autoHotkeyRanges = String(autoHotkeyRanges).split(",");
+      
+      var itemType;
+      var itemName;
+      var dateAndTime;
+      var dateAndTimeString;
+      var dateAndTimeStringMod;
+      var nextDateAndTime;
+      var nextDateAndTimeString;
+      var nextDateAndTimeStringMod;
+      var overrideCounter = 10;
+      var groupIndex;
+      var nextGroupIndex;
+      var autoHotkeyRangesLength = autoHotkeyRanges.length/3;
+      var isMulti = false;
+      for(var i = 0; i < autoHotkeyRangesLength; i++) {
+        groupIndex = i * 3;
+        itemType = autoHotkeyRanges[groupIndex];
+        itemName = autoHotkeyRanges[groupIndex+1];
+        dateAndTimeString = autoHotkeyRanges[groupIndex+2];
+        if (dateAndTimeString) {
+          dateAndTimeStringMod = dateAndTimeString.split(" ").join("T");
+          dateAndTime = new Date(dateAndTimeStringMod+".000Z");
+        } else {
+          dateAndTime = null;
+        }
+        if (overrideCounter == 1) {
+          // Check previous
+          nextGroupIndex = (i - 1) * 3;
+        } else {
+          // Check next
+          nextGroupIndex = (i + 1) * 3;
+        }
+        if (nextGroupIndex < autoHotkeyRanges.length) {
+          nextDateAndTimeString = autoHotkeyRanges[nextGroupIndex+2];
+          if (nextDateAndTimeString) {
+            nextDateAndTimeStringMod = nextDateAndTimeString.split(" ").join("T");
+            nextDateAndTime = new Date(nextDateAndTimeStringMod+".000Z");
+            
+            if (nextDateAndTime.getTime() == dateAndTime.getTime()) {
+              if (isMulti) {
+                //Resume counting
+              } else {
+                isMulti = true;
+                overrideCounter = 10;
+              }
+            } else {
+              isMulti = false;
+              // autoHotkeySheet.getRange(2 +i,3).setValue("nothing");
+            }
+          } else {
+            isMulti = false;
+          }
+        } else {
+          //autoHotkeySheet.getRange(2 +i,3).setValue(nextDateAndTime + ":"+ dateAndTime);
+        }
+        if (isMulti) {
+          autoHotkeySheet.getRange(4 +i,4).setValue(overrideCounter);
+          overrideCounter--;
+          if (overrideCounter == 0) {
+            // Switch off multi
+            isMulti = false;
+          }
+        } else {
+          autoHotkeySheet.getRange(4 +i,4).setValue("");
+        }
+        if (itemType && itemName && dateAndTime) {
+          autoHotkeySheet.getRange(4 + groupIndex,2,3,1).mergeVertically();
+          if (dateAndTime <= lastWishDateAndTime) {
+            autoHotkeySheet.getRange(4 + groupIndex,2).setFormula('=CONCATENATE(CHAR(128503)," STOPPED date and time is older than banner")');
+            break;
+          } else {
+            autoHotkeySheet.getRange(4 + i,3).setValue(itemType+itemName+dateAndTimeString);
+            autoHotkeySheet.getRange(4 + groupIndex,2).setFormula('=CONCATENATE(CHAR(128505)," Row: '+ (4 + i) + '")');
+          }
+        } else {
+          autoHotkeySheet.getRange(4 + groupIndex,2,3,1).mergeVertically();
+          autoHotkeySheet.getRange(4 + groupIndex,2).setFormula('=CONCATENATE(CHAR(128503)," ")');
+        }
+      }
+    } else {
+      autoHotkeySheet.getRange(1,3).setValue("Select a valid banner");
+    }
+  } else {
+    var message = 'Enable AutoHotkey in settings, and run "Update Items"';
+    var title = 'Error AHK Disabled';
+    SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+  }
+}
+
+function importAHK() {
+  var autoHotkeySheet = SpreadsheetApp.getActive().getSheetByName("AutoHotkey");
+  if (autoHotkeySheet) {
+    var banner = autoHotkeySheet.getRange(1, 2).getValue();
+    var bannerSheet = SpreadsheetApp.getActive().getSheetByName(banner);
+    if (bannerSheet) {
+      var iLastRow = bannerSheet.getRange(2, 1, bannerSheet.getLastRow(), 1).getValues().filter(String).length;
+      if (iLastRow != 0) {
+        iLastRow = iLastRow + 1;
+      } else {
+        iLastRow = 2;
+      }
+
+      var iAHKLastRow = autoHotkeySheet.getRange(4, 3, autoHotkeySheet.getLastRow(), 1).getValues().filter(String).length;
+      if (iAHKLastRow != 0) {
+        //iAHKLastRow++;
+
+        // Used to prevent lag when applying numberformat, must be done before entering data
+        var wishHistoryNumberOfColumn = bannerSheet.getLastColumn();
+        // Reduce two column due to paste and override
+        var wishHistoryNumberOfColumnWithFormulas = wishHistoryNumberOfColumn - 2;
+
+        var lastRowWithoutTitle = bannerSheet.getMaxRows() + iAHKLastRow;
+        for (var i = 3; i <= wishHistoryNumberOfColumn; i++) {
+          // Apply formatting for cells
+          var numberFormatCell = bannerSheet.getRange(2, i).getNumberFormat();
+          bannerSheet.getRange(2, i, lastRowWithoutTitle, 1).setNumberFormat(numberFormatCell);
+        }
+
+        // pasteValue to banner
+        var pasteValue = autoHotkeySheet.getRange(4,3,iAHKLastRow, 2).getValues();
+        bannerSheet.getRange(iLastRow,1,iAHKLastRow, 2).setValues(pasteValue);
+        //bannerSheet.insertRowAfter(1);
+        clearOverrideAHK();
+        
+       // addFormulaByWishHistoryName(banner); // lags the sheet
+        sortWishHistoryByName(banner);
+        var message = 'Imported to '+banner;
+        var title = 'Complete';
+        SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+      } else {
+        var message = 'Nothing to import';
+        var title = 'Error';
+        SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+      }
+    } else {
+      var message = 'Select banner and run convert again';
+      var title = 'Error';
+      SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+    }
+  } else {
+    var message = 'Enable AutoHotkey in settings, and run "Update Items"';
+    var title = 'Error AHK Disabled';
+    SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+  }
+}
+function generateAHK() {
+  var autoHotkeyScriptSheet = SpreadsheetApp.getActive().getSheetByName("AutoHotkey-Script");
+  if (autoHotkeyScriptSheet) {
+    var autoHotkeyScriptRanges = autoHotkeyScriptSheet.getRange(7,2, autoHotkeyScriptSheet.getMaxRows()-6,1).getValues();
+    autoHotkeyScriptRanges = String(autoHotkeyScriptRanges).split(",");
+    
+    var selectionString = autoHotkeyScriptSheet.getRange(4,1).getValue();
+    if (selectionString) {
+      var isFound = false;
+      
+      var scriptType;
+      var SCRIPT_URL;
+      
+      for(var i = 0; i < autoHotkeyScriptRanges.length; i++) {
+        scriptType = autoHotkeyScriptRanges[i];
+        if (scriptType == selectionString) {
+          SCRIPT_URL = autoHotkeyScriptSheet.getRange(7+i,3).getValue();
+          isFound = true;
+          break;
+        }
+      }
+      if (isFound) {
+        const richText = SpreadsheetApp.newRichTextValue()
+          .setText(scriptType+" Link")
+          .setLinkUrl([SCRIPT_URL])
+          .build();
+        autoHotkeyScriptSheet.getRange(7, 1).setRichTextValue(richText);
+        var message = 'Script is ready';
+        var title = 'Complete';
+        SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+      } else {
+        var message = 'Script Type selection not valid';
+        var title = 'Error';
+        SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+        autoHotkeyScriptSheet.getRange(7,1).setValue("ERROR");
+      }
+    } else {
+      var message = 'Script Type selection is empty, check A4';
+      var title = 'Error';
+      SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+      autoHotkeyScriptSheet.getRange(7,1).setValue("ERROR");
+    }
+  } else {
+    var message = 'Enable AutoHotkey in settings, and run "Update Items"';
+    var title = 'Error AHK Disabled';
+    SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+    autoHotkeyScriptSheet.getRange(7,1).setValue("ERROR");
   }
 }
