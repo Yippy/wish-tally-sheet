@@ -1,6 +1,6 @@
 function importButtonScript() {
-  var dashboardSheet = SpreadsheetApp.getActive().getSheetByName('Dashboard');
-  var settingsSheet = SpreadsheetApp.getActive().getSheetByName('Settings');
+  var dashboardSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_DASHBOARD_SHEET_NAME);
+  var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
   if (dashboardSheet && settingsSheet) {
     var userImportSelection = dashboardSheet.getRange(dashboardEditRange[4]).getValue();
     var importSelectionText = dashboardSheet.getRange(dashboardEditRange[6]).getValue();
@@ -14,23 +14,19 @@ function importButtonScript() {
       importFromAPI();
     }
   } else {
-    SpreadsheetApp.getActiveSpreadsheet().toast("Unable to find 'Dashboard' or 'Settings'", "Missing Sheets");
+    SpreadsheetApp.getActiveSpreadsheet().toast("Unable to find '"+ WISH_TALLY_DASHBOARD_SHEET_NAME + "' or '" + WISH_TALLY_SETTINGS_SHEET_NAME + "'", "Missing Sheets");
   }
 }
 
 function importDataManagement() {
-  var settingsSheet = SpreadsheetApp.getActive().getSheetByName('Settings');
+  var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
   var userImportInput = settingsSheet.getRange("D6").getValue();
   var userImportStatus = settingsSheet.getRange("E7").getValue();
-  var completeStatus = "COMPLETE";
-  var wishHistoryNotDoneStatus = "NOT DONE";
-  var wishHistoryDoneStatus = "DONE";
-  var wishHistoryMissingStatus = "NOT FOUND";
   var message = "";
   var title = "";
   var statusMessage = "";
   var rowOfStatusWishHistory = 9;
-  if (userImportStatus == completeStatus) {
+  if (userImportStatus == IMPORT_STATUS_COMPLETE) {
       title = "Error";
       message = "Already done, you only need to run once";
   } else {
@@ -62,12 +58,12 @@ function importDataManagement() {
 
             if (bannerSheet) {
               bannerSheet.getRange(2, 1, numberOfRows, 2).setValues(range.getValues());
-              settingsSheet.getRange(rowOfStatusWishHistory+i, 5).setValue(wishHistoryDoneStatus);
+              settingsSheet.getRange(rowOfStatusWishHistory+i, 5).setValue(IMPORT_STATUS_WISH_HISTORY_COMPLETE);
             } else {
-              settingsSheet.getRange(rowOfStatusWishHistory+i, 5).setValue(wishHistoryMissingStatus);
+              settingsSheet.getRange(rowOfStatusWishHistory+i, 5).setValue(IMPORT_STATUS_WISH_HISTORY_NOT_FOUND);
             }
           } else {
-            settingsSheet.getRange(rowOfStatusWishHistory+i, 5).setValue(wishHistoryMissingStatus);
+            settingsSheet.getRange(rowOfStatusWishHistory+i, 5).setValue(IMPORT_STATUS_WISH_HISTORY_EMPTY);
           }
         }
         var sourceSettingsSheet = importSource.getSheetByName("Settings");
@@ -155,7 +151,7 @@ function importDataManagement() {
 
         title = "Complete";
         message = "Imported all rows in column Paste Value and Override";
-        statusMessage = completeStatus;
+        statusMessage = IMPORT_STATUS_COMPLETE;
       } else {
         title = "Error";
         message = "Import From URL or Spreadsheet ID is invalid";
