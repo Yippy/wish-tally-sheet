@@ -3,13 +3,6 @@
 * Version 3.0 made by yippym - 2021-06-28 16:14
  */
 
-/* Add URL here to avoid showing on Sheet */
-var urlForAPIByPass = "";
-/* (optional) */
-
-var sheetSourceId = '1mTeEQs1nOViQ-_BVHkDSZgfKGsYiLATe1mFQxypZQWA';
-var nameOfWishHistorys = ["Character Event Wish History", "Permanent Wish History", "Weapon Event Wish History", "Novice Wish History"];
-
 var dashboardEditRange = [
   "I5", // Status cell
   "AB28", // Document Version
@@ -101,8 +94,8 @@ function importFromAPI() {
 
   var urlForAPI = settingsSheet.getRange("D35").getValue();
   settingsSheet.getRange("D35").setValue("");
-  if (urlForAPIByPass != "") {
-    urlForAPI = urlForAPIByPass;
+  if (AUTO_IMPORT_URL_FOR_API_BYPASS != "") {
+    urlForAPI = AUTO_IMPORT_URL_FOR_API_BYPASS;
   }
   urlForAPI = urlForAPI.toString().split("&");
   var foundAuth = "";
@@ -120,8 +113,8 @@ function importFromAPI() {
   var bannerSettings;
   if (foundAuth == "") {
     // Display auth key not available
-    for (var i = 0; i < nameOfWishHistorys.length; i++) {
-      bannerName = nameOfWishHistorys[i];
+    for (var i = 0; i < WISH_TALLY_NAME_OF_WISH_HISTORY.length; i++) {
+      bannerName = WISH_TALLY_NAME_OF_WISH_HISTORY[i];
       bannerSettings = bannerSettingsForImport[bannerName];
       settingsSheet.getRange(bannerSettings['range_status']).setValue("No auth key");
     }
@@ -142,14 +135,14 @@ function importFromAPI() {
     urlForWishHistory += "?"+additionalQuery.join("&")+"&authkey="+foundAuth+"&lang="+languageSettings['code'];
     errorCodeNotEncountered = true;
     // Clear status
-    for (var i = 0; i < nameOfWishHistorys.length; i++) {
-      bannerName = nameOfWishHistorys[i];
+    for (var i = 0; i < WISH_TALLY_NAME_OF_WISH_HISTORY.length; i++) {
+      bannerName = WISH_TALLY_NAME_OF_WISH_HISTORY[i];
       bannerSettings = bannerSettingsForImport[bannerName];
       settingsSheet.getRange(bannerSettings['range_status']).setValue("");
     }
-    for (var i = 0; i < nameOfWishHistorys.length; i++) {
+    for (var i = 0; i < WISH_TALLY_NAME_OF_WISH_HISTORY.length; i++) {
       if (errorCodeNotEncountered) {
-        bannerName = nameOfWishHistorys[i];
+        bannerName = WISH_TALLY_NAME_OF_WISH_HISTORY[i];
         bannerSettings = bannerSettingsForImport[bannerName];
         var isToggled = settingsSheet.getRange(bannerSettings['range_toggle']).getValue();
         if (isToggled == true) {
@@ -507,14 +500,14 @@ function importDataManagement() {
       }
       if (importSource) {
         // Go through the available sheet list
-        for (var i = 0; i < nameOfWishHistorys.length; i++) {
-          var bannerImportSheet = importSource.getSheetByName(nameOfWishHistorys[i]);
+        for (var i = 0; i < WISH_TALLY_NAME_OF_WISH_HISTORY.length; i++) {
+          var bannerImportSheet = importSource.getSheetByName(WISH_TALLY_NAME_OF_WISH_HISTORY[i]);
           
           var numberOfRows = bannerImportSheet.getMaxRows()-1;
           var range = bannerImportSheet.getRange(2, 1, numberOfRows, 2);
 
           if (bannerImportSheet && numberOfRows > 0) {
-            var bannerSheet = SpreadsheetApp.getActive().getSheetByName(nameOfWishHistorys[i]);
+            var bannerSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_NAME_OF_WISH_HISTORY[i]);
 
             if (bannerSheet) {
               bannerSheet.getRange(2, 1, numberOfRows, 2).setValues(range.getValues());
@@ -654,7 +647,7 @@ function GET_SPREADSHEET_ID() {
 }
 
 function displayAbout() {
-  var sheetSource = SpreadsheetApp.openById(sheetSourceId);
+  var sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
   if (sheetSource) {
     var aboutSource = sheetSource.getSheetByName('About');
     var titleString = aboutSource.getRange("B1").getValue();
@@ -676,7 +669,7 @@ function displayAbout() {
 }
 
 function displayReadme() {
-  var sheetSource = SpreadsheetApp.openById(sheetSourceId);
+  var sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
   if (sheetSource) {
     // Avoid Exception: You can't remove all the sheets in a document.Details
     var placeHolderSheet = null;
@@ -803,7 +796,7 @@ function addFormulaNoviceWishHistory() {
 function addFormulaWishHistory() {
   var sheetActive = SpreadsheetApp.getActiveSpreadsheet();
   var wishHistoryName = sheetActive.getSheetName();
-  if (nameOfWishHistorys.indexOf(wishHistoryName) != -1) {
+  if (WISH_TALLY_NAME_OF_WISH_HISTORY.indexOf(wishHistoryName) != -1) {
     addFormulaByWishHistoryName(wishHistoryName);
   } else {
     var message = 'Sheet must be called "Character Event Wish History" or "Permanent Wish History" or "Weapon Event Wish History" or "Novice Wish History"';
@@ -813,7 +806,7 @@ function addFormulaWishHistory() {
 }
 
 function addFormulaByWishHistoryName(name) {
-  var sheetSource = SpreadsheetApp.openById(sheetSourceId);
+  var sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
   if (sheetSource) {
     // Add Language
     var wishHistorySource;
@@ -878,7 +871,7 @@ function findWishHistoryByName(name, sheetSource) {
   var wishHistorySheet = SpreadsheetApp.getActive().getSheetByName(name);
   if (wishHistorySheet == null) {
     if (sheetSource == null) {
-      sheetSource = SpreadsheetApp.openById(sheetSourceId);
+      sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
     }
     if (sheetSource) {
       var sheetCopySource = sheetSource.getSheetByName("Wish History");
@@ -896,7 +889,7 @@ function findWishHistoryByName(name, sheetSource) {
 function sortWishHistory() {
   var sheetActive = SpreadsheetApp.getActiveSpreadsheet();
   var wishHistoryName = sheetActive.getSheetName();
-  if (nameOfWishHistorys.indexOf(wishHistoryName) != -1) {
+  if (WISH_TALLY_NAME_OF_WISH_HISTORY.indexOf(wishHistoryName) != -1) {
     sortWishHistoryByName(wishHistoryName);
   } else {
     var message = 'Sheet must be called "Character Event Wish History" or "Permanent Wish History" or "Weapon Event Wish History" or "Novice Wish History"';
@@ -1209,7 +1202,7 @@ function quickUpdate() {
       var changelogSheet = SpreadsheetApp.getActive().getSheetByName('Changelog');
       if (changelogSheet) {
         try {
-          var sheetSource = SpreadsheetApp.openById(sheetSourceId);
+          var sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
           if (sheetSource) {
             // get latest banners
             var sheetPityChecker = SpreadsheetApp.getActive().getSheetByName("Pity Checker");
@@ -1327,7 +1320,7 @@ function updateItemsList() {
     dashboardSheet.getRange(dashboardEditRange[0]).setValue("Update Items: Running script, please wait.");
     dashboardSheet.getRange(dashboardEditRange[0]).setFontColor("yellow").setFontWeight("bold");
   }
-  var sheetSource = SpreadsheetApp.openById(sheetSourceId);
+  var sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
   // Check source is available
   if (sheetSource) {
     try {
