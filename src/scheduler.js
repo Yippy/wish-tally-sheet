@@ -53,19 +53,25 @@ function setTriggerDataManagement() {
 
 function updateItemsListTriggered() {
   var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
-  settingsSheet.getRange("E22").setValue(new Date());
-  updateItemsList();
-  settingsSheet.getRange("E23").setValue(new Date());
+  if (settingsSheet) {
+    settingsSheet.getRange("E22").setValue(new Date());
+    updateItemsList();
+    settingsSheet.getRange("E23").setValue(new Date());
+  }
 }
 
 function sortRangesTriggered() {
   var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
-  settingsSheet.getRange("E29").setValue(new Date());
+  if (settingsSheet) {
+    settingsSheet.getRange("E29").setValue(new Date());
+  }
   sortCharacterEventWishHistory();
   sortPermanentWishHistory();
   sortWeaponEventWishHistory();
   sortNoviceWishHistory();
-  settingsSheet.getRange("E30").setValue(new Date());
+  if (settingsSheet) {
+    settingsSheet.getRange("E30").setValue(new Date());
+  }
 }
 
 function scheduledTrigger(hours,minutes,functionName){
@@ -96,10 +102,12 @@ function removeTriggers() {
 function removeTriggerDataManagement() {
   var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
   removeTriggers();
-  var title = "Remove Schedule";
-  var message = "All schedule has been removed";
-  SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
-  settingsSheet.getRange("E16").setValue(SCHEDULER_TRIGGER_OFF_TEXT);
-  settingsSheet.getRange("E21").setValue(SCHEDULER_TRIGGER_OFF_TEXT);
-  settingsSheet.getRange("E28").setValue(SCHEDULER_TRIGGER_OFF_TEXT);
+  if (settingsSheet) {
+    var title = "Remove Schedule";
+    var message = "All schedule has been removed";
+    SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+    settingsSheet.getRange("E16").setValue(SCHEDULER_TRIGGER_OFF_TEXT);
+    settingsSheet.getRange("E21").setValue(SCHEDULER_TRIGGER_OFF_TEXT);
+    settingsSheet.getRange("E28").setValue(SCHEDULER_TRIGGER_OFF_TEXT);
+  }
 }
