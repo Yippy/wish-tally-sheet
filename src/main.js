@@ -107,35 +107,18 @@ function addFormulaByWishHistoryName(name) {
     var wishHistorySource = sheetSource.getSheetByName(name);
     var sheet = findWishHistoryByName(name,sheetSource);
     
-    var numberTitle = wishHistorySource.getRange("B1").getValue();
-    var numberFormula = wishHistorySource.getRange("B2").getFormula();
-    sheet.getRange(1, 2, 1, 1).setValue(numberTitle);
-    sheet.getRange(2, 2, sheet.getLastRow(), 1).setValue(numberFormula);
-    sheet.setColumnWidth(2, wishHistorySource.getColumnWidth(2));
+    var wishHistorySourceNumberOfColumn = wishHistorySource.getLastColumn();
 
-    var weaponTitle = wishHistorySource.getRange("C1").getValue();
-    var weaponFormula = wishHistorySource.getRange("C2").getFormula();
-    sheet.getRange(1, 3, 1, 1).setValue(weaponTitle);
-    sheet.getRange(2, 3, sheet.getLastRow(), 1).setValue(weaponFormula);
-    sheet.setColumnWidth(3, wishHistorySource.getColumnWidth(3));
+    for (var i = 2; i <= wishHistorySourceNumberOfColumn; i++) {
+      var titleCell = wishHistorySource.getRange(1, i).getValue();
+      var formulaCell = wishHistorySource.getRange(2, i).getFormula();
+      var numberFormatCell = wishHistorySource.getRange(2, i).getNumberFormat();
 
-    var dateAndTimeTitle = wishHistorySource.getRange("D1").getValue();
-    var dateAndTimeFormula = wishHistorySource.getRange("D2").getFormula();
-    sheet.getRange(1, 4, 1, 1).setValue(dateAndTimeTitle);
-    sheet.getRange(2, 4, sheet.getLastRow(), 1).setValue(dateAndTimeFormula);
-    sheet.setColumnWidth(4, wishHistorySource.getColumnWidth(4));
-
-    var itemNameTitle = wishHistorySource.getRange("E1").getValue();
-    var itemNameFormula = wishHistorySource.getRange("E2").getFormula();
-    sheet.getRange(1, 5, 1, 1).setValue(itemNameTitle);
-    sheet.getRange(2, 5, sheet.getLastRow(), 1).setValue(itemNameFormula);
-    sheet.setColumnWidth(5, wishHistorySource.getColumnWidth(5));
-
-    var itemRarityTitle = wishHistorySource.getRange("F1").getValue();
-    var itemRarityFormula = wishHistorySource.getRange("F2").getFormula();
-    sheet.getRange(1, 6, 1, 1).setValue(itemRarityTitle);
-    sheet.getRange(2, 6, sheet.getLastRow(), 1).setValue(itemRarityFormula);
-    sheet.setColumnWidth(6, wishHistorySource.getColumnWidth(6));
+      sheet.getRange(1, i, 1, 1).setValue(titleCell);
+      sheet.getRange(2, i, sheet.getLastRow(), 1).setValue(formulaCell);
+      sheet.getRange(2, i, sheet.getLastRow(), 1).setNumberFormat(numberFormatCell);
+      sheet.setColumnWidth(i, wishHistorySource.getColumnWidth(i));
+    }
 
     // Ensure new row is not the same height as first, if row 2 did not exist
     sheet.autoResizeRows(2, 1);
@@ -195,12 +178,14 @@ function sortNoviceWishHistory() {
 function sortWishHistoryByName(sheetName) {
   var sheet = findWishHistoryByName(sheetName, null);
   if (sheet) {
-    // Sheet should have 6 columns
-    if (sheet.getLastColumn() < 6 || sheet.getLastRow() < 2) {
-      addFormulaByWishHistoryName(sheetName);
+    if (sheet.getLastColumn() > 5) {
+      var range = sheet.getRange(2, 1, sheet.getLastRow(), sheet.getLastColumn());
+      range.sort([{column: 4, ascending: true}, {column: 6, ascending: true}]);
+    } else {
+      var message = 'Invalid number of columns to sort, run "Refresh Formula" or "Update Items"';
+      var title = 'Error';
+      SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
     }
-    var range = sheet.getRange(2, 1, sheet.getLastRow(), sheet.getLastColumn());
-    range.sort([{column: 4, ascending: true}, {column: 6, ascending: true}]);
   } else {
     var message = 'Unable to connect to source';
     var title = 'Error';
@@ -222,7 +207,7 @@ function updateItemsList() {
     }
 
     // Remove sheets
-    var listOfSheetsToRemove = ["Items","Pity Checker","Results","Changelog"];
+    var listOfSheetsToRemove = ["Items","Pity Checker","Results","Results By Date","Changelog","All Wish History"];
     var listOfSheetsToRemoveLength = listOfSheetsToRemove.length;
 
     for (var i = 0; i < listOfSheetsToRemoveLength; i++) {
@@ -260,8 +245,14 @@ function updateItemsList() {
     Utilities.sleep(100);
     var sheetPityCheckerSource = sheetSource.getSheetByName('Pity Checker');
     sheetPityCheckerSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Pity Checker');
+    var sheetAllWishHistorySource = sheetSource.getSheetByName('All Wish History');
+    var sheetAllWishHistory = sheetAllWishHistorySource.copyTo(SpreadsheetApp.getActiveSpreadsheet());
+    sheetAllWishHistory.setName('All Wish History');
+    sheetAllWishHistory.hideSheet();
     var sheetResultsSource = sheetSource.getSheetByName('Results');
     sheetResultsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Results');
+    var sheetResultsByDateSource = sheetSource.getSheetByName('Results By Date');
+    sheetResultsByDateSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Results By Date');
     var sheetChangelogSource = sheetSource.getSheetByName('Changelog');
     sheetChangelogSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Changelog');
     
