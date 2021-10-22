@@ -1,5 +1,5 @@
 /*
-* Version 2.91 made by yippym - 2021-04-15 02:25
+* Version 2.92 made by yippym - 2021-04-30 13:25
  */
 
 /* Add URL here to avoid showing on Sheet */
@@ -80,11 +80,13 @@ var additionalQuery = [
   "device_type=pc"
 ];
 
-var url = "https://hk4e-api.mihoyo.com/event/gacha_info/api/getGachaLog"
+var url = "https://hk4e-api-os.mihoyo.com/event/gacha_info/api/getGachaLog";
+var urlChina = "https://hk4e-api.mihoyo.com/event/gacha_info/api/getGachaLog";
 
 var errorCodeAuthTimeout = -101;
 var errorCodeAuthInvalid = -100;
 var errorCodeLanguageCode = -108;
+var errorCodeRequestParams = -104;
 var errorCodeNotEncountered = true;
 
 function importFromAPI() {
@@ -119,14 +121,19 @@ function importFromAPI() {
     }
   } else {
     var selectedLanguageCode = settingsSheet.getRange("B2").getValue();
+    var selectedServer = settingsSheet.getRange("B3").getValue();
     var languageSettings = languageSettingsForImport[selectedLanguageCode];
     if (languageSettings == null) {
       // Get default language
       languageSettings = languageSettingsForImport["English"];
     }
-
-    var urlForWishHistory = url+"?"+additionalQuery.join("&")+"&authkey="+foundAuth+"&lang="+languageSettings['code'];
-    
+    var urlForWishHistory;
+    if (selectedServer == "China") {
+      urlForWishHistory = urlChina;
+    } else {
+      urlForWishHistory = url;
+    }
+    urlForWishHistory += "?"+additionalQuery.join("&")+"&authkey="+foundAuth+"&lang="+languageSettings['code'];
     errorCodeNotEncountered = true;
     // Clear status
     for (var i = 0; i < nameOfWishHistorys.length; i++) {
@@ -264,8 +271,12 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
         errorCodeNotEncountered = false;
         is_done = true;
         settingsSheet.getRange(bannerSettings['range_status']).setValue("auth invalid");
+      } else if (errorCodeRequestParams == jsonDict["retcode"]) {
+        errorCodeNotEncountered = false;
+        is_done = true;
+        settingsSheet.getRange(bannerSettings['range_status']).setValue("Change server setting");
       }
-      
+
       failed++;
       if (failed > 2){
         is_done = true;
