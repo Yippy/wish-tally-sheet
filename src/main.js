@@ -54,7 +54,7 @@ function GET_SPREADSHEET_ID() {
 }
 
 function reorderSheets() {
-  var settingsSheet = SpreadsheetApp.getActive().getSheetByName("Settings");
+  var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
   if (settingsSheet) {
     var sheetsToSort = settingsSheet.getRange(28,2,15,1).getValues();
 
@@ -291,15 +291,14 @@ function restoreResultsSettings(sheetResults, settingsSheet) {
   }
 }
 
-
 var quickUpdateRange = [
   "A2","M2","Y2","AK2", // Banner Images
   "A3","M3","Y3" // Banner Time
 ];
 
 function quickUpdate() {
-  var dashboardSheet = SpreadsheetApp.getActive().getSheetByName('Dashboard');
-  var settingsSheet = SpreadsheetApp.getActive().getSheetByName('Settings');
+  var dashboardSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_DASHBOARD_SHEET_NAME);
+  var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
   if (dashboardSheet) {
     dashboardSheet.getRange(dashboardEditRange[0]).setValue("Quick Update: Running script, please wait.");
     dashboardSheet.getRange(dashboardEditRange[0]).setFontColor("yellow").setFontWeight("bold");
@@ -330,17 +329,17 @@ function quickUpdate() {
         settingsSheet.getRange("G10").setValue(new Date());
       }
 
-      var changelogSheet = SpreadsheetApp.getActive().getSheetByName('Changelog');
+      var changelogSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_CHANGELOG_SHEET_NAME);
       if (changelogSheet) {
         try {
           var sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
           if (sheetSource) {
             // get latest banners
-            var sheetPityChecker = SpreadsheetApp.getActive().getSheetByName("Pity Checker");
+            var sheetPityChecker = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_PITY_CHECKER_SHEET_NAME);
             if (sheetPityChecker) {
               restorePityCheckerSettings(sheetPityChecker, settingsSheet);
               if (sheetSource) {
-                var sheetPityCheckerSource = sheetSource.getSheetByName("Pity Checker");
+                var sheetPityCheckerSource = sheetSource.getSheetByName(WISH_TALLY_PITY_CHECKER_SHEET_NAME);
                 if (sheetPityCheckerSource) {
                   for (var i = 0; i < quickUpdateRange.length; i++) {
                     var range = quickUpdateRange[i];
@@ -357,7 +356,7 @@ function quickUpdate() {
             }
             // check latest logs to see anything new
             if (dashboardSheet) {
-              var sheetAvailableSource = sheetSource.getSheetByName("Available");
+              var sheetAvailableSource = sheetSource.getSheetByName(WISH_TALLY_AVAILABLE_SHEET_NAME);
               if (dashboardSheet) {
                 var sourceDocumentVersion = sheetAvailableSource.getRange("E1").getValues();
                 var currentDocumentVersion = dashboardSheet.getRange(dashboardEditRange[2]).getValues();
@@ -376,7 +375,7 @@ function quickUpdate() {
               var lastDateChangeSourceText;
               var isChangelogTheSame = true;
               
-              var sheetChangelogSource = sheetSource.getSheetByName("Changelog");
+              var sheetChangelogSource = sheetSource.getSheetByName(WISH_TALLY_CHANGELOG_SHEET_NAME);
               for (var i = 0; i < changesCheckRange.length; i++) {
                 var checkChangelogSource = sheetChangelogSource.getRange(changesCheckRange[i]).getValue();
                 if (checkChangelogSource instanceof Date) {
@@ -445,7 +444,7 @@ function quickUpdate() {
 * Update Item List
 */
 function updateItemsList() {
-  var dashboardSheet = SpreadsheetApp.getActive().getSheetByName('Dashboard');
+  var dashboardSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_DASHBOARD_SHEET_NAME);
   var updateItemHasFailed = false;
   if (dashboardSheet) {
     dashboardSheet.getRange(dashboardEditRange[0]).setValue("Update Items: Running script, please wait.");
@@ -456,13 +455,13 @@ function updateItemsList() {
   if (sheetSource) {
     try {
       // attempt to load sheet from source, to prevent removing sheets first.
-      var sheetAvailableSource = sheetSource.getSheetByName("Available");
+      var sheetAvailableSource = sheetSource.getSheetByName(WISH_TALLY_AVAILABLE_SHEET_NAME);
       // Avoid Exception: You can't remove all the sheets in a document.Details
       var placeHolderSheet = null;
       if (SpreadsheetApp.getActive().getSheets().length == 1) {
         placeHolderSheet = SpreadsheetApp.getActive().insertSheet();
       }
-      var settingsSheet = SpreadsheetApp.getActive().getSheetByName("Settings");
+      var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
       if (settingsSheet) {
         var isLoading = settingsSheet.getRange(5, 7).getValue();
         if (isLoading) {
@@ -488,12 +487,11 @@ function updateItemsList() {
         }
       }
       // Remove sheets
-      // var listOfSheetsToRemove = ["Items","Events", "Pity Checker","Results","All Wish History", "Constellation", "Weapons"];
-      var listOfSheetsToRemove = ["Constellation","Characters","Weapons","Events","Results","Pity Checker","All Wish History","Items"];
-      
+      var listOfSheetsToRemove = [WISH_TALLY_CHARACTERS_OLD_SHEET_NAME,WISH_TALLY_CHARACTERS_SHEET_NAME,WISH_TALLY_WEAPONS_SHEET_NAME,WISH_TALLY_EVENTS_SHEET_NAME,WISH_TALLY_RESULTS_SHEET_NAME,WISH_TALLY_PITY_CHECKER_SHEET_NAME,WISH_TALLY_ALL_WISH_HISTORY_SHEET_NAME,WISH_TALLY_ITEMS_SHEET_NAME];
+
       var availableRanges = sheetAvailableSource.getRange(2,1, sheetAvailableSource.getMaxRows()-1,1).getValues();
       availableRanges = String(availableRanges).split(",");
-      
+
       if (dashboardSheet) {
         var sourceDocumentVersion = sheetAvailableSource.getRange("E1").getValues();
         var currentDocumentVersion = dashboardSheet.getRange(dashboardEditRange[2]).getValues();
@@ -510,24 +508,24 @@ function updateItemsList() {
       for (var i = 0; i < availableRanges.length; i++) {
         listOfSheetsToRemove.push(availableRanges[i]);
       }
-      
+
       var listOfSheetsToRemoveLength = listOfSheetsToRemove.length;
       for (var i = 0; i < listOfSheetsToRemoveLength; i++) {
         var sheetNameToRemove = listOfSheetsToRemove[i];
         var sheetToRemove = SpreadsheetApp.getActive().getSheetByName(sheetNameToRemove);
         if(sheetToRemove) {
           if (settingsSheet) {
-            if (sheetNameToRemove == "Pity Checker") {
+            if (sheetNameToRemove == WISH_TALLY_PITY_CHECKER_SHEET_NAME) {
               savePityCheckerSettings(sheetToRemove, settingsSheet);
-            } else if (sheetNameToRemove == "Results") {
+            } else if (sheetNameToRemove == WISH_TALLY_RESULTS_SHEET_NAME) {
               saveResultsSettings(sheetToRemove, settingsSheet);
-            } else if (sheetNameToRemove == "Events") {
+            } else if (sheetNameToRemove == WISH_TALLY_EVENTS_SHEET_NAME) {
               saveEventsSettings(sheetToRemove, settingsSheet);
-            } else if (sheetNameToRemove == "Constellation") {
+            } else if (sheetNameToRemove == WISH_TALLY_CHARACTERS_OLD_SHEET_NAME) {
               saveCollectionSettings(sheetToRemove, settingsSheet,"G7","H7");
-            } else if (sheetNameToRemove == "Characters") {
+            } else if (sheetNameToRemove == WISH_TALLY_CHARACTERS_SHEET_NAME) {
               saveCollectionSettings(sheetToRemove, settingsSheet,"G7","H7");
-            } else if (sheetNameToRemove == "Weapons") {
+            } else if (sheetNameToRemove == WISH_TALLY_WEAPONS_SHEET_NAME) {
               saveCollectionSettings(sheetToRemove, settingsSheet,"G8","H8");
             }
           }
@@ -537,7 +535,7 @@ function updateItemsList() {
         }
       }
       
-      var listOfSheets = ["Character Event Wish History","Permanent Wish History","Weapon Event Wish History","Novice Wish History"];
+      var listOfSheets = [WISH_TALLY_CHARACTER_EVENT_WISH_SHEET_NAME,WISH_TALLY_PERMANENT_WISH_SHEET_NAME,WISH_TALLY_WEAPON_EVENT_WISH_SHEET_NAME,WISH_TALLY_NOVICE_WISH_SHEET_NAME];
       var listOfSheetsLength = listOfSheets.length;
       // Check if sheet exist
       for (var i = 0; i < listOfSheetsLength; i++) {
@@ -549,15 +547,15 @@ function updateItemsList() {
       var sheetItemSource;
       if (settingsSheet) {
         var languageFound = settingsSheet.getRange(2, 2).getValue();
-        sheetItemSource = sheetSource.getSheetByName("Items"+"-"+languageFound);
+        sheetItemSource = sheetSource.getSheetByName(WISH_TALLY_ITEMS_SHEET_NAME+"-"+languageFound);
       }
       if (sheetItemSource) {
         // Found language
       } else {
         // Default
-        sheetItemSource = sheetSource.getSheetByName("Items");
+        sheetItemSource = sheetSource.getSheetByName(WISH_TALLY_ITEMS_SHEET_NAME);
       }
-      sheetItemSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Items');
+      sheetItemSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName(WISH_TALLY_ITEMS_SHEET_NAME);
       
       // Refresh spreadsheet
       for (var i = 0; i < listOfSheetsLength; i++) {
@@ -584,16 +582,16 @@ function updateItemsList() {
       }
       var sheetEvents;
       if (shouldShowSheet) {
-        var sheetEventsSource = sheetSource.getSheetByName('Events');
-        sheetEvents = sheetEventsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Events');
+        var sheetEventsSource = sheetSource.getSheetByName(WISH_TALLY_EVENTS_SHEET_NAME);
+        sheetEvents = sheetEventsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName(WISH_TALLY_EVENTS_SHEET_NAME);
         
         if (settingsSheet) {
           restoreEventsSettings(sheetEvents, settingsSheet);
         }
       }
       
-      var sheetPityCheckerSource = sheetSource.getSheetByName('Pity Checker');
-      var sheetPityChecker = sheetPityCheckerSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Pity Checker');
+      var sheetPityCheckerSource = sheetSource.getSheetByName(WISH_TALLY_PITY_CHECKER_SHEET_NAME);
+      var sheetPityChecker = sheetPityCheckerSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName(WISH_TALLY_PITY_CHECKER_SHEET_NAME);
       
       
       if (settingsSheet) {
@@ -608,9 +606,9 @@ function updateItemsList() {
         }
       }
 
-      var sheetAllWishHistorySource = sheetSource.getSheetByName('All Wish History');
+      var sheetAllWishHistorySource = sheetSource.getSheetByName(WISH_TALLY_ALL_WISH_HISTORY_SHEET_NAME);
       var sheetAllWishHistory = sheetAllWishHistorySource.copyTo(SpreadsheetApp.getActiveSpreadsheet());
-      sheetAllWishHistory.setName('All Wish History');
+      sheetAllWishHistory.setName(WISH_TALLY_ALL_WISH_HISTORY_SHEET_NAME);
       sheetAllWishHistory.hideSheet();
       
       // Show Results
@@ -627,15 +625,15 @@ function updateItemsList() {
         var sheetResultsSource;
         if (settingsSheet) {
           var languageFound = settingsSheet.getRange(2, 2).getValue();
-          sheetResultsSource = sheetSource.getSheetByName("Results"+"-"+languageFound);
+          sheetResultsSource = sheetSource.getSheetByName(WISH_TALLY_RESULTS_SHEET_NAME+"-"+languageFound);
         }
         if (sheetResultsSource) {
           // Found language
         } else {
           // Default
-          sheetResultsSource = sheetSource.getSheetByName("Results");
+          sheetResultsSource = sheetSource.getSheetByName(WISH_TALLY_RESULTS_SHEET_NAME);
         }
-        sheetResults = sheetResultsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Results');
+        sheetResults = sheetResultsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName(WISH_TALLY_RESULTS_SHEET_NAME);
         
         if (settingsSheet) {
           restoreResultsSettings(sheetResults, settingsSheet);
@@ -655,16 +653,16 @@ function updateItemsList() {
         var sheetConstellationSource;
         if (settingsSheet) {
           var languageFound = settingsSheet.getRange(2, 2).getValue();
-          sheetConstellationSource = sheetSource.getSheetByName("Constellation"+"-"+languageFound);
+          sheetConstellationSource = sheetSource.getSheetByName(WISH_TALLY_CHARACTERS_OLD_SHEET_NAME+"-"+languageFound);
         }
         if (sheetConstellationSource) {
           // Found language
         } else {
           // Default
-          sheetConstellationSource = sheetSource.getSheetByName("Constellation");
+          sheetConstellationSource = sheetSource.getSheetByName(WISH_TALLY_CHARACTERS_OLD_SHEET_NAME);
         }
         if (sheetConstellationSource) {
-          sheetConstellation = sheetConstellationSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Characters');
+          sheetConstellation = sheetConstellationSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName(WISH_TALLY_CHARACTERS_SHEET_NAME);
           // Refresh Contents Links
           var contentsAvailable = sheetConstellation.getRange(1, 1).getValue();
           var contentsStartIndex = 2;
@@ -710,16 +708,16 @@ function updateItemsList() {
         var sheetWeaponsSource;
         if (settingsSheet) {
           var languageFound = settingsSheet.getRange(2, 2).getValue();
-          sheetWeaponsSource = sheetSource.getSheetByName("Weapons"+"-"+languageFound);
+          sheetWeaponsSource = sheetSource.getSheetByName(WISH_TALLY_WEAPONS_SHEET_NAME+"-"+languageFound);
         }
         if (sheetWeaponsSource) {
           // Found language
         } else {
           // Default
-          sheetWeaponsSource = sheetSource.getSheetByName("Weapons");
+          sheetWeaponsSource = sheetSource.getSheetByName(WISH_TALLY_WEAPONS_SHEET_NAME);
         }
         if (sheetWeaponsSource) {
-          sheetWeapons = sheetWeaponsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Weapons');
+          sheetWeapons = sheetWeaponsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName(WISH_TALLY_WEAPONS_SHEET_NAME);
           // Refresh Contents Links
           var contentsAvailable = sheetWeapons.getRange(1, 1).getValue();
           var contentsStartIndex = 2;
