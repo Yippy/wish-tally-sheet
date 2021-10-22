@@ -120,7 +120,19 @@ function addFormulaWishHistory() {
 function addFormulaByWishHistoryName(name) {
   var sheetSource = SpreadsheetApp.openById(sheetSourceId);
   if (sheetSource) {
-    var wishHistorySource = sheetSource.getSheetByName("Wish History");
+    // Add Language
+    var wishHistorySource;
+    var settingsSheet = SpreadsheetApp.getActive().getSheetByName("Settings");
+    if (settingsSheet) {
+      var languageFound = settingsSheet.getRange(2, 2).getValue();
+      wishHistorySource = sheetSource.getSheetByName("Wish History"+"-"+languageFound);
+    }
+    if (wishHistorySource) {
+      // Found language
+    } else {
+      // Default
+      wishHistorySource = sheetSource.getSheetByName("Wish History");
+    }
     var sheet = findWishHistoryByName(name,sheetSource);
 
     var wishHistorySourceNumberOfColumn = wishHistorySource.getLastColumn();
@@ -275,7 +287,20 @@ function updateItemsList() {
       findWishHistoryByName(listOfSheets[i], sheetSource);
     }
 
-    var sheetItemSource = sheetSource.getSheetByName('Items');
+    
+    // Add Language
+    var sheetItemSource;
+    var settingsSheet = SpreadsheetApp.getActive().getSheetByName("Settings");
+    if (settingsSheet) {
+      var languageFound = settingsSheet.getRange(2, 2).getValue();
+      sheetItemSource = sheetSource.getSheetByName("Items"+"-"+languageFound);
+    }
+    if (sheetItemSource) {
+      // Found language
+    } else {
+      // Default
+      sheetItemSource = sheetSource.getSheetByName("Items");
+    }
     sheetItemSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Items');
 
     // Refresh spreadsheet
@@ -299,7 +324,20 @@ function updateItemsList() {
     var sheetAllWishHistory = sheetAllWishHistorySource.copyTo(SpreadsheetApp.getActiveSpreadsheet());
     sheetAllWishHistory.setName('All Wish History');
     sheetAllWishHistory.hideSheet();
-    var sheetResultsSource = sheetSource.getSheetByName('Results');
+    
+    
+    // Add Language
+    var sheetResultsSource;
+    if (settingsSheet) {
+      var languageFound = settingsSheet.getRange(2, 2).getValue();
+      sheetResultsSource = sheetSource.getSheetByName("Results"+"-"+languageFound);
+    }
+    if (sheetResultsSource) {
+      // Found language
+    } else {
+      // Default
+      sheetResultsSource = sheetSource.getSheetByName("Results");
+    }
     sheetResultsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Results');
     var sheetResultsByDateSource = sheetSource.getSheetByName('Results By Date');
     sheetResultsByDateSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName('Results By Date');
