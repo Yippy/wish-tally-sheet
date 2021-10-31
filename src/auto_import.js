@@ -2,9 +2,10 @@
  * Version 3.0.1 made by yippym - 2021-10-22 21:00
  * https://github.com/Yippy/wish-tally-sheet
  */
+var errorCodeNotEncountered = true;
 
 function importFromAPI() {
-  var errorCodeNotEncountered = true;
+  errorCodeNotEncountered = true;
   var settingsSheet = getSettingsSheet();
   settingsSheet.getRange("E42").setValue(new Date());
   settingsSheet.getRange("E43").setValue("");
