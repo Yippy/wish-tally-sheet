@@ -55,6 +55,10 @@ function moveToReadmeSheet() {
   moveToSheetByName(WISH_TALLY_README_SHEET_NAME);
 }
 
+function moveToCrystalCalculatorSheet() {
+  moveToSheetByName(WISH_TALLY_CRYSTAL_CALCULATOR_SHEET_NAME);
+}
+
 function moveToSheetByName(nameOfSheet) {
   var sheet = SpreadsheetApp.getActive().getSheetByName(nameOfSheet);
   if (sheet) {
