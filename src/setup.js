@@ -2,8 +2,11 @@
  * Version 3.0.1 made by yippym - 2021-10-22 21:00
  * https://github.com/Yippy/wish-tally-sheet
  */
+function onInstall(e){
+  onOpen(e);
+}
 
-function onOpen( ){
+function onOpen(e){
   var ui = SpreadsheetApp.getUi();
   var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
   if (!settingsSheet) {
