@@ -5,6 +5,7 @@
 
 // Wish Tally Const
 var WISH_TALLY_SHEET_SOURCE_ID = '1mTeEQs1nOViQ-_BVHkDSZgfKGsYiLATe1mFQxypZQWA';
+var WISH_TALLY_SHEET_SUPPORTED_LOCALE = "en_GB";
 
 // Auto Import Const
 /* Add URL here to avoid showing on Sheet */

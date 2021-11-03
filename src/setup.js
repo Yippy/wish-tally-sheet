@@ -16,6 +16,18 @@ function onOpen(e){
   } else {
     getDefaultMenu();
   }
+  checkLocaleIsSetCorrectly();
+}
+
+/* Ensure Sheets is set to the supported locale due to source document formula */
+function checkLocaleIsSetCorrectly() {
+  var currentLocale = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetLocale();
+  if (currentLocale != WISH_TALLY_SHEET_SUPPORTED_LOCALE) {
+    SpreadsheetApp.getActiveSpreadsheet().setSpreadsheetLocale(WISH_TALLY_SHEET_SUPPORTED_LOCALE);
+    var message = 'To ensure compatibility with formula from source document, your locale "'+currentLocale+'" has been changed to "'+WISH_TALLY_SHEET_SUPPORTED_LOCALE+'"';
+    var title = 'Sheets Locale Changed';
+    SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+  }
 }
 
 function getDefaultMenu() {
