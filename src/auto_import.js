@@ -165,7 +165,7 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
           } else {
             if (overrideIndex > 1) {
               // Resume counting down when override is set more than 1, add a second to checkPreviousDateAndTime
-              checkPreviousDateAndTime.setSeconds(checkPreviousDateAndTime.getSeconds()+1);
+              checkPreviousDateAndTime.setSeconds(checkPreviousDateAndTime.getSeconds()-1);
               if (checkPreviousDateAndTime.valueOf() == wishDateAndTime.valueOf()) {
                 // Within 1 second range resuming multi count
                 overrideIndex--;
