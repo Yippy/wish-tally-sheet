@@ -74,7 +74,8 @@ function importFromAPI() {
           settingsSheet.getRange(bannerSettings['range_status']).setValue("Skipped");
         }
       } else {
-        settingsSheet.getRange(bannerSettings['range_status']).setValue("Skipped - Error");
+        settingsSheet.getRange(bannerSettings['range_status']).setValue("Stopped Due to Error: "+settingsSheet.getRange(bannerSettings['range_status']).getValue());
+        break;
       }
     }
   }
@@ -85,11 +86,13 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
   settingsSheet.getRange(bannerSettings['range_status']).setValue("Starting");
   /* Get latest wish from banner */
   var iLastRow = bannerSheet.getRange(2, 5, bannerSheet.getLastRow(), 1).getValues().filter(String).length;
+  var wishTextString;
   var lastWishDateAndTimeString;
   var lastWishDateAndTime;
   if (iLastRow && iLastRow != 0 ) {
     iLastRow++;
     lastWishDateAndTimeString = bannerSheet.getRange("E" + iLastRow).getValue();
+    wishTextString = bannerSheet.getRange("A" + iLastRow).getValue();
     if (lastWishDateAndTimeString) {
       settingsSheet.getRange(bannerSettings['range_status']).setValue("Last wish: "+lastWishDateAndTimeString);
       lastWishDateAndTimeString = lastWishDateAndTimeString.split(" ").join("T");
@@ -114,6 +117,7 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
   var end_id = 0;
   
   var checkPreviousDateAndTimeString = "";
+  var checkPreviousDateAndTime;
   var overrideIndex = 0;
   while (!is_done) {
     settingsSheet.getRange(bannerSettings['range_status']).setValue("Loading page: "+page);
@@ -123,7 +127,6 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
     var jsonDictData = jsonDict["data"];
     if (jsonDictData) {
       var listOfWishes = jsonDictData["list"];
-      var isDone = false;
       var listOfWishesLength = listOfWishes.length;
       var wish;
       if (listOfWishesLength > 0) {
@@ -142,19 +145,44 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
           var dateAndTimeStringModified = dateAndTimeString.split(" ").join("T");
           var wishDateAndTime = new Date(dateAndTimeStringModified+".000Z");
           if (checkPreviousDateAndTimeString === dateAndTimeString) {
+            // Found matching date and time to previous wish
             if (overrideIndex == 0) {
+              // Start multi 10 index
               var previousWishIndex = extractWishes.length - 1;
               var previousWish = extractWishes[previousWishIndex];
               overrideIndex = 10;
               previousWish[1] = overrideIndex;
               extractWishes[previousWishIndex] = previousWish;
             }
-            overrideIndex--;
+            if (overrideIndex == 1) {
+              errorCodeNotEncountered = false;
+              is_done = true;
+              settingsSheet.getRange(bannerSettings['range_status']).setValue("Error: Multi wish contains 11 within same date and time:"+dateAndTimeString+", found so far: "+extractWishes.length);
+              break;
+            } else {
+              overrideIndex--;
+            }
           } else {
+            if (overrideIndex > 1) {
+              // Resume counting down when override is set more than 1, add a second to checkPreviousDateAndTime
+              checkPreviousDateAndTime.setSeconds(checkPreviousDateAndTime.getSeconds()+1);
+              if (checkPreviousDateAndTime.valueOf() == wishDateAndTime.valueOf()) {
+                // Within 1 second range resuming multi count
+                overrideIndex--;
+              } else {
+                errorCodeNotEncountered = false;
+                is_done = true;
+                settingsSheet.getRange(bannerSettings['range_status']).setValue("Error: Multi wish is incomplete with override "+overrideIndex+"@"+dateAndTimeString+", found so far: "+extractWishes.length);
+                break;
+              }
+            } else {
+              // Default value for single wishes
+              overrideIndex = 0;
+            }
             checkPreviousDateAndTimeString = dateAndTimeString;
-            overrideIndex = 0;
+            checkPreviousDateAndTime = new Date(wishDateAndTime.valueOf());
           }
-          if (lastWishDateAndTime >= wishDateAndTime ) {
+          if (lastWishDateAndTime >= wishDateAndTime) {
             // Banner already got this wish
             is_done = true;
             break;
@@ -162,8 +190,7 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
             extractWishes.push([textWish, (overrideIndex > 0 ? overrideIndex:null)]);
           }
         }
-        if (numberOfWishPerPage == listOfWishesLength) {
-          // There could be more wishes on the next page
+        if (!is_done && numberOfWishPerPage == listOfWishesLength) {
           end_id = wish['id'];
           page++;
         } else {
@@ -202,9 +229,29 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
   } else {
     if (errorCodeNotEncountered) {
       if (extractWishes.length > 0) {
-        settingsSheet.getRange(bannerSettings['range_status']).setValue("Found: "+extractWishes.length);
-        extractWishes.reverse();
-        bannerSheet.getRange(iLastRow, 1, extractWishes.length, 2).setValues(extractWishes);
+        var now = new Date();
+        var sixMonthBeforeNow = new Date(now.valueOf());
+        sixMonthBeforeNow.setMonth(now.getMonth() - 6);
+        var isValid = true;
+        var outputString = "Found: "+extractWishes.length;
+        if (!lastWishDateAndTime) {
+          // fresh history sheet no last date to check
+          outputString += ", with wish history being empty"
+        } else if (lastWishDateAndTime < sixMonthBeforeNow) {
+          // Check if last wish found is more than 6 months, no further validation
+          outputString += ", last wish saved was 6 months ago, maybe missing wishes inbetween"
+        } else {
+          if (wishTextString !== textWish) {
+            // API didn't reach to your last wish stored on the sheet, meaning the API is incomplete
+            isValid = false;
+            outputString = "Error your recently found wishes did not reach to your last wish, found: "+extractWishes.length+", please try again miHoYo may have sent incomplete wish data.";
+          }
+        }
+        if (isValid) {
+          extractWishes.reverse();
+          bannerSheet.getRange(iLastRow, 1, extractWishes.length, 2).setValues(extractWishes);
+        }
+        settingsSheet.getRange(bannerSettings['range_status']).setValue(outputString);
       } else {
         settingsSheet.getRange(bannerSettings['range_status']).setValue("Nothing to add");
       }
