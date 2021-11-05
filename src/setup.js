@@ -2,21 +2,33 @@
  * Version 3.0.1 made by yippym - 2021-10-22 21:00
  * https://github.com/Yippy/wish-tally-sheet
  */
-function onInstall(e){
-  onOpen(e);
+function onInstall(e) {
+  if (e && e.authMode == ScriptApp.AuthMode.NONE) {
+    generateInitialiseToolbar();
+  } else {
+    onOpen(e);
+  }
 }
 
-function onOpen(e){
-  var ui = SpreadsheetApp.getUi();
-  var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
-  if (!settingsSheet) {
-    ui.createMenu('Wish Tally')
-    .addItem('Initialise', 'updateItemsList')
-    .addToUi();
+function onOpen(e) {
+  if (e && e.authMode == ScriptApp.AuthMode.NONE) {
+    generateInitialiseToolbar();
   } else {
-    getDefaultMenu();
+    var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
+    if (!settingsSheet) {
+      generateInitialiseToolbar();
+    } else {
+      getDefaultMenu();
+    }
+    checkLocaleIsSetCorrectly();
   }
-  checkLocaleIsSetCorrectly();
+}
+
+function generateInitialiseToolbar() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu('Wish Tally')
+  .addItem('Initialise', 'updateItemsList')
+  .addToUi();
 }
 
 /* Ensure Sheets is set to the supported locale due to source document formula */
