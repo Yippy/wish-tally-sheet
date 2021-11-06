@@ -31,6 +31,24 @@ function generateInitialiseToolbar() {
   .addToUi();
 }
 
+function displayUserPrompt(titlePrompt, messagePrompt) {
+  const ui = SpreadsheetApp.getUi();
+  var result = ui.prompt(
+    titlePrompt,
+    messagePrompt,
+    SpreadsheetApp.getUi().ButtonSet.OK_CANCEL);
+  return result;
+}
+
+function displayUserAlert(titleAlert, messageAlert) {
+  const ui = SpreadsheetApp.getUi();
+  var result = ui.alert(
+    titleAlert,
+    messageAlert,
+    SpreadsheetApp.getUi().ButtonSet.OK_CANCEL);
+  return result;
+}
+
 /* Ensure Sheets is set to the supported locale due to source document formula */
 function checkLocaleIsSetCorrectly() {
   var currentLocale = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetLocale();

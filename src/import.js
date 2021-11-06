@@ -9,14 +9,19 @@ function importButtonScript() {
   if (dashboardSheet && settingsSheet) {
     var userImportSelection = dashboardSheet.getRange(dashboardEditRange[4]).getValue();
     var importSelectionText = dashboardSheet.getRange(dashboardEditRange[6]).getValue();
-    var urlInput = dashboardSheet.getRange(dashboardEditRange[7]).getValue();
-    dashboardSheet.getRange(dashboardEditRange[7]).setValue(""); //Clear input
-    if (userImportSelection == importSelectionText) {
-      settingsSheet.getRange("D6").setValue(urlInput);
-      importDataManagement();
-    } else {
-      settingsSheet.getRange("D35").setValue(urlInput);
-      importFromAPI();
+    var importSelectionTextSubtitle = dashboardSheet.getRange(dashboardEditRange[7]).getValue();
+    const result = displayUserPrompt(importSelectionText, importSelectionTextSubtitle);
+
+    var button = result.getSelectedButton();
+    if (button == SpreadsheetApp.getUi().Button.OK) {
+      var urlInput = result.getResponseText();
+      if (userImportSelection == importSelectionText) {
+        settingsSheet.getRange("D6").setValue(urlInput);
+        importDataManagement();
+      } else {
+        settingsSheet.getRange("D35").setValue(urlInput);
+        importFromAPI();
+      }
     }
   } else {
     SpreadsheetApp.getActiveSpreadsheet().toast("Unable to find '"+ WISH_TALLY_DASHBOARD_SHEET_NAME + "' or '" + WISH_TALLY_SETTINGS_SHEET_NAME + "'", "Missing Sheets");
