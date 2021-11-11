@@ -16,6 +16,8 @@ https://workspace.google.com/marketplace/app/wish_tally/791037722195
 ## Tutorial
 [Install Add-on](docs/INSTALL_ADD_ON.md)
 
+[Setup Add-on](docs/SETUP_ADD_ON.md)
+
 
 ## Template Document
 If you prefer to use the Wish Tally document with embedded script, you can make a copy here:
