@@ -1,6 +1,9 @@
 # Change Language
 Wish Tally support 13 text language support for Genshin Impact
 
+## Change Language
+If you prefer seeing the wishes in another language, you can change the language within the Settings
+
 ## Step 1
 Go to Settings using the cog icon.
 
