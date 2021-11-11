@@ -20,6 +20,8 @@ https://workspace.google.com/marketplace/app/wish_tally/791037722195
 
 [Change Language](docs/CHANGE_LANGUAGE.md)
 
+[Get README](docs/GET_README.md)
+
 
 ## Template Document
 If you prefer to use the Wish Tally document with embedded script, you can make a copy here:
