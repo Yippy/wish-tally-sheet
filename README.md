@@ -3,6 +3,7 @@ Script to help manage Genshin Impact wish history using Google Sheet Document.
 
 ## Project Website
 Visit the Genshin Impact collection of Google Sheets tools:
+
 https://gensheets.co.uk 
 
 ## Google Add-on
