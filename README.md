@@ -6,7 +6,7 @@ Wish Tally is now available as a Google Add-on:
 https://workspace.google.com/marketplace/app/wish_tally/791037722195
 
 Preview:
-<img src="https://raw.github.com/Yippy/wish-tally-sheet/master/images/wish-tally-overview.png?sanitize=true">
+<img src="https://raw.github.com/Yippy/wish-tally-sheet/master/images/wish-tally-preview.png?sanitize=true">
 
 
 Template Document if prefer embedded script
