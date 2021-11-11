@@ -22,6 +22,7 @@ https://workspace.google.com/marketplace/app/wish_tally/791037722195
 
 [Get README](docs/GET_README.md)
 
+[Use Auto Import](docs/USE_AUTO_IMPORT.md)
 
 ## Template Document
 If you prefer to use the Wish Tally document with embedded script, you can make a copy here:
