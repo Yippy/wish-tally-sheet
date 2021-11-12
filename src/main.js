@@ -396,7 +396,7 @@ function quickUpdate() {
                 }
               }
               if (isChangelogTheSame) {
-                dashboardSheet.getRange(dashboardEditRange[0]).setValue("Quick Update: There is no changes from source");
+                dashboardSheet.getRange(dashboardEditRange[0]).setValue("Quick Update: There are no changes from source");
                 dashboardSheet.getRange(dashboardEditRange[0]).setFontColor("green").setFontWeight("bold");
               } else {
                 if (lastDateChangeText == lastDateChangeSourceText) {
