@@ -1,5 +1,5 @@
 # Setup Add-On
-After installing the Add-On, you need to initilise the Wish Tally document
+After installing the Add-On, you need to initialise the Wish Tally document
 
 ### Setup Add-On
 After installing the Add-on to your account you must manually enable the Add-On to the document.
