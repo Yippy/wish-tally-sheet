@@ -379,11 +379,11 @@ function quickUpdate() {
               for (var i = 0; i < changesCheckRange.length; i++) {
                 var checkChangelogSource = sheetChangelogSource.getRange(changesCheckRange[i]).getValue();
                 if (checkChangelogSource instanceof Date) {
-                  lastDateChangeSourceText = Utilities.formatDate(checkChangelogSource, 'Etc/GMT', 'dd-MM-yyyy');
+                  lastDateChangeSourceText = Utilities.formatDate(checkChangelogSource, SpreadsheetApp.getActive().getSpreadsheetTimeZone(), 'dd-MM-yyyy');
                 }
                 var checkChangelog = changelogSheet.getRange(changesCheckRange[i]).getValue();
                 if (checkChangelog instanceof Date) {
-                  lastDateChangeText = Utilities.formatDate(checkChangelog, 'Etc/GMT', 'dd-MM-yyyy');
+                  lastDateChangeText = Utilities.formatDate(checkChangelog, SpreadsheetApp.getActive().getSpreadsheetTimeZone(), 'dd-MM-yyyy');
                   if (lastDateChangeSourceText != lastDateChangeText) {
                     isChangelogTheSame = false;
                     break;
