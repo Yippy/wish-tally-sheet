@@ -1,3 +1,16 @@
+# Contents
+[README](/README.md)
+
+[Install Add-on](/docs/INSTALL_ADD_ON.md)
+
+[Setup Add-On](/docs/SETUP_ADD_ON.md)
+
+➜Change Language
+
+[Get README](/docs/GET_README.md)
+
+[Use Auto Import](/docs/USE_AUTO_IMPORT.md)
+
 # Change Language
 Wish Tally support 13 text language support for Genshin Impact
 

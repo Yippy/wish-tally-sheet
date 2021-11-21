@@ -1,3 +1,18 @@
+# Contents
+[README](/README.md)
+
+[Install Add-on](/docs/INSTALL_ADD_ON.md)
+
+[Setup Add-On](/docs/SETUP_ADD_ON.md)
+
+[Change Language](/docs/CHANGE_LANGUAGE.md)
+
+➜Get README
+
+[Use Auto Import](/docs/USE_AUTO_IMPORT.md)
+
+#
+
 # Get README
 Wish Tally has a how to tutorial within the README, by default the README isn't downloaded.
 

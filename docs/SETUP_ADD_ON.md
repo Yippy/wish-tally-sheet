@@ -1,3 +1,18 @@
+# Contents
+[README](/README.md)
+
+[Install Add-on](/docs/INSTALL_ADD_ON.md)
+
+➜Setup Add-On
+
+[Change Language](/docs/CHANGE_LANGUAGE.md)
+
+[Get README](/docs/GET_README.md)
+
+[Use Auto Import](/docs/USE_AUTO_IMPORT.md)
+
+#
+
 # Setup Add-On
 After installing the Add-On, you need to initialise the Wish Tally document
 
