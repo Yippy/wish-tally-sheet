@@ -60,7 +60,7 @@ function addFormulaByWishHistoryName(name) {
       wishHistorySource = sheetSource.getSheetByName(WISH_TALLY_WISH_HISTORY_SHEET_NAME);
     }
     var sheet = findWishHistoryByName(name,sheetSource);
-
+    sheet.getRange("A1").setFontColor("white").setValue(name);
     var wishHistorySourceNumberOfColumn = wishHistorySource.getLastColumn();
     // Reduce two column due to paste and override
     var wishHistorySourceNumberOfColumnWithFormulas = wishHistorySourceNumberOfColumn - 2;
