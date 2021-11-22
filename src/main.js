@@ -384,18 +384,18 @@ function quickUpdate() {
             // check latest logs to see anything new
             if (dashboardSheet) {
               var sheetAvailableSource = sheetSource.getSheetByName(WISH_TALLY_AVAILABLE_SHEET_NAME);
-              if (dashboardSheet) {
-                var sourceDocumentVersion = sheetAvailableSource.getRange("E1").getValues();
-                var currentDocumentVersion = dashboardSheet.getRange(dashboardEditRange[2]).getValues();
-                dashboardSheet.getRange(dashboardEditRange[1]).setValue(sourceDocumentVersion);
-                if (sourceDocumentVersion>currentDocumentVersion){
-                  dashboardSheet.getRange(dashboardEditRange[3]).setValue("New Document Available, make a new copy");
-                  dashboardSheet.getRange(dashboardEditRange[3]).setFontColor("red").setFontWeight("bold");
-                } else {
-                  dashboardSheet.getRange(dashboardEditRange[3]).setValue("Document is up-to-date");
-                  dashboardSheet.getRange(dashboardEditRange[3]).setFontColor("green").setFontWeight("bold");
-                }
+
+              var sourceDocumentVersion = sheetAvailableSource.getRange("E1").getValues();
+              var currentDocumentVersion = dashboardSheet.getRange(dashboardEditRange[2]).getValues();
+              dashboardSheet.getRange(dashboardEditRange[1]).setValue(sourceDocumentVersion);
+              if (sourceDocumentVersion>currentDocumentVersion){
+                dashboardSheet.getRange(dashboardEditRange[3]).setValue("New Document Available, make a new copy");
+                dashboardSheet.getRange(dashboardEditRange[3]).setFontColor("red").setFontWeight("bold");
+              } else {
+                dashboardSheet.getRange(dashboardEditRange[3]).setValue("Document is up-to-date");
+                dashboardSheet.getRange(dashboardEditRange[3]).setFontColor("green").setFontWeight("bold");
               }
+
               var changesCheckRange = changelogSheet.getRange(2, 1).getValue();
               changesCheckRange = changesCheckRange.split(",");
               var lastDateChangeText;
@@ -568,8 +568,7 @@ function updateItemsList() {
       for (var i = 0; i < listOfSheetsLength; i++) {
         findWishHistoryByName(listOfSheets[i], sheetSource);
       }
-      
-      
+
       // Add Language
       var sheetItemSource;
       if (settingsSheet) {
@@ -583,7 +582,12 @@ function updateItemsList() {
         sheetItemSource = sheetSource.getSheetByName(WISH_TALLY_ITEMS_SHEET_NAME);
       }
       sheetItemSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName(WISH_TALLY_ITEMS_SHEET_NAME);
-      
+
+      var sheetAllWishHistorySource = sheetSource.getSheetByName(WISH_TALLY_ALL_WISH_HISTORY_SHEET_NAME);
+      var sheetAllWishHistory = sheetAllWishHistorySource.copyTo(SpreadsheetApp.getActiveSpreadsheet());
+      sheetAllWishHistory.setName(WISH_TALLY_ALL_WISH_HISTORY_SHEET_NAME);
+      sheetAllWishHistory.hideSheet();
+
       // Refresh spreadsheet
       for (var i = 0; i < listOfSheetsLength; i++) {
         addFormulaByWishHistoryName(listOfSheets[i]);
@@ -616,7 +620,7 @@ function updateItemsList() {
           restoreEventsSettings(sheetEvents, settingsSheet);
         }
       }
-      
+
       var sheetPityCheckerSource = sheetSource.getSheetByName(WISH_TALLY_PITY_CHECKER_SHEET_NAME);
       var sheetPityChecker = sheetPityCheckerSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName(WISH_TALLY_PITY_CHECKER_SHEET_NAME);
       
@@ -633,11 +637,6 @@ function updateItemsList() {
         }
       }
 
-      var sheetAllWishHistorySource = sheetSource.getSheetByName(WISH_TALLY_ALL_WISH_HISTORY_SHEET_NAME);
-      var sheetAllWishHistory = sheetAllWishHistorySource.copyTo(SpreadsheetApp.getActiveSpreadsheet());
-      sheetAllWishHistory.setName(WISH_TALLY_ALL_WISH_HISTORY_SHEET_NAME);
-      sheetAllWishHistory.hideSheet();
-      
       // Show Results
       shouldShowSheet = true;
       if (settingsSheet) {
