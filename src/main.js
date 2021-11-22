@@ -83,11 +83,26 @@ function savePityCheckerSettings(pityCheckerSheet, settingsSheet) {
 }
 
 function saveResultsSettings(resultsSheet, settingsSheet) {
-  var isDarkMode = resultsSheet.getRange("B9").getValue();
-  settingsSheet.getRange("G3").setValue(isDarkMode);
-  var selectionValueRange = resultsSheet.getRange(10,1,1,4).getValues();
-  selectionValueRange = String(selectionValueRange).split(",");
-  settingsSheet.getRange("H3").setValue(selectionValueRange.join(","));
+  var saveRangesString = resultsSheet.getRange("C1").getValue();
+  var userSaves = [];
+  if (saveRangesString != "") {
+    var saveRanges = String(saveRangesString).split(",");
+    for (var i = 0; i < saveRanges.length; i++) {
+      var saveRange = String(saveRanges[i]).split("=")
+      if (saveRange.length == 2) {
+        var getSave = resultsSheet.getRange(saveRange[1]).getValue();
+        userSaves.push(saveRange[0]+"="+getSave);
+      }
+    }
+  } else {
+    // Old Results - Remove Dark Mode saving
+    var selectionValueRange = resultsSheet.getRange(10,1,1,4).getValues();
+    selectionValueRange = String(selectionValueRange).split(",");
+    for (var i = 0; i < selectionValueRange.length; i++) {
+      userSaves.push("ItemName"+(i+1)+"="+selectionValueRange[i]);
+    }
+  }
+  settingsSheet.getRange("H3").setValue(userSaves.join(","));
 }
 
 function saveEventsSettings(eventsSheet, settingsSheet) {
@@ -279,15 +294,26 @@ function restorePityCheckerSettings(sheetPityChecker, settingsSheet) {
 }
 
 function restoreResultsSettings(sheetResults, settingsSheet) {
-  var isDarkMode = settingsSheet.getRange("G3").getValue();
-  if (isDarkMode != sheetResults.getRange("B9").getValue()) {
-    sheetResults.getRange("B9").setValue(isDarkMode);
-  }
+  var saveRangesString = sheetResults.getRange("C1").getValue();
+  var saveRangesDict = [];
+  if (saveRangesString != "") {
+    var saveRanges = String(saveRangesString).split(",");
+    for (var i = 0; i < saveRanges.length; i++) {
+      var saveRange = String(saveRanges[i]).split("=")
+      if (saveRange.length == 2) {
+        saveRangesDict[saveRange[0]] = saveRange[1];
+      }
+    }
+    var saveData = settingsSheet.getRange("H3").getValue().split(",");
+    for (var i = 0; i < saveData.length; i++) {
+      var valueData = String(saveData[i]).split("=");
 
-  var saveDate = settingsSheet.getRange("H3").getValue().split(",");
-  for (var ii = 0; ii < saveDate.length; ii++) {
-    var valueData = saveDate[ii];
-    sheetResults.getRange(10,1 + ii).setValue(valueData);
+      if (valueData.length == 2) {
+        if (saveRangesDict.hasOwnProperty(valueData[0])) {
+          sheetResults.getRange(saveRangesDict[valueData[0]]).setValue(valueData[1]);
+        }
+      }
+    }
   }
 }
 
