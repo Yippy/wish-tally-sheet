@@ -11,7 +11,8 @@ var dashboardEditRange = [
   "AV1", // Name of drop down 1 (import)
   "AV2", // Name of drop down 2 (auto import)
   "AG14", // Selection
-  "AG16" // Subtitle of selection
+  "AG16", // Subtitle of selection
+  "A40" // Method of checking script enabled
 ];
 
 // Cells that needs Pity Checker
