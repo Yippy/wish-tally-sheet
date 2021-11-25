@@ -10,6 +10,11 @@ function importButtonScript() {
     var userImportSelection = dashboardSheet.getRange(dashboardEditRange[4]).getValue();
     var importSelectionText = dashboardSheet.getRange(dashboardEditRange[6]).getValue();
     var importSelectionTextSubtitle = dashboardSheet.getRange(dashboardEditRange[7]).getValue();
+
+    var autoImport = dashboardSheet.getRange(dashboardEditRange[5]).getValue();
+    if (importSelectionText==autoImport) {
+      importSelectionTextSubtitle = "Please note Feedback URL no longer works for Auto Import\n[PC Only]\nDirectory (Double click below):\n%USERPROFILE%/AppData/LocalLow/miHoYo/Genshin Impact/\n\nCheck 'output_log.txt' for URL when visiting your Wish History in game";
+    }
     const result = displayUserPrompt(importSelectionText, importSelectionTextSubtitle);
 
     var button = result.getSelectedButton();

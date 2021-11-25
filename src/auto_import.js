@@ -74,7 +74,7 @@ function importFromAPI() {
           settingsSheet.getRange(bannerSettings['range_status']).setValue("Skipped");
         }
       } else {
-        settingsSheet.getRange(bannerSettings['range_status']).setValue("Stopped Due to Error: "+settingsSheet.getRange(bannerSettings['range_status']).getValue());
+        settingsSheet.getRange(bannerSettings['range_status']).setValue("Stopped Due to Error:\n"+settingsSheet.getRange(bannerSettings['range_status']).getValue());
         break;
       }
     }
@@ -119,6 +119,8 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
   var checkPreviousDateAndTimeString = "";
   var checkPreviousDateAndTime;
   var overrideIndex = 0;
+  var textWish;
+  var oldTextWish;
   while (!is_done) {
     settingsSheet.getRange(bannerSettings['range_status']).setValue("Loading page: "+page);
     var response = UrlFetchApp.fetch(urlForBanner+"&page="+page+"&end_id="+end_id);
@@ -133,14 +135,20 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
         for (var i = 0; i < listOfWishesLength; i++) {
           wish = listOfWishes[i];
           var dateAndTimeString = wish['time'];
-          var textWish = wish['item_type']+wish['name'];
+          textWish = wish['item_type']+wish['name'];
           /* Mimic the website in showing specific language wording */
           if (wish['rank_type'] == 4) {
             textWish += languageSettings["4_star"];
           } else if (wish['rank_type'] == 5) {
             textWish += languageSettings["5_star"];
           }
-          textWish += dateAndTimeString;
+          oldTextWish = textWish+dateAndTimeString;
+          var gachaString = "gacha_type_"+wish['gacha_type'];
+          var bannerName = "Error New Banner";
+          if (gachaString in languageSettings) {
+            bannerName = languageSettings[gachaString];
+          }
+          textWish += bannerName+dateAndTimeString;
 
           var dateAndTimeStringModified = dateAndTimeString.split(" ").join("T");
           var wishDateAndTime = new Date(dateAndTimeStringModified+".000Z");
@@ -204,7 +212,11 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
       var message = jsonDict["message"];
       var title ="Error code: "+jsonDict["retcode"];
       SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
-      if (AUTO_IMPORT_URL_ERROR_CODE_AUTH_TIMEOUT == jsonDict["retcode"]) {
+      if (AUTO_IMPORT_URL_ERROR_CODE_AUTHKEY_DENIED == jsonDict["retcode"]) {
+        errorCodeNotEncountered = false;
+        is_done = true;
+        settingsSheet.getRange(bannerSettings['range_status']).setValue("feedback URL\nNo Longer Works");
+      } else if (AUTO_IMPORT_URL_ERROR_CODE_AUTH_TIMEOUT == jsonDict["retcode"]) {
         errorCodeNotEncountered = false;
         is_done = true;
         settingsSheet.getRange(bannerSettings['range_status']).setValue("auth timeout");
@@ -242,9 +254,11 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
           outputString += ", last wish saved was 6 months ago, maybe missing wishes inbetween"
         } else {
           if (wishTextString !== textWish) {
-            // API didn't reach to your last wish stored on the sheet, meaning the API is incomplete
-            isValid = false;
-            outputString = "Error your recently found wishes did not reach to your last wish, found: "+extractWishes.length+", please try again miHoYo may have sent incomplete wish data.";
+            if (wishTextString !== oldTextWish) {
+              // API didn't reach to your last wish stored on the sheet, meaning the API is incomplete
+              isValid = false;
+              outputString = "Error your recently found wishes did not reach to your last wish, found: "+extractWishes.length+", please try again miHoYo may have sent incomplete wish data.";
+            }
           }
         }
         if (isValid) {
