@@ -6,30 +6,33 @@
 function importButtonScript() {
   var settingsSheet = getSettingsSheet();
   var dashboardSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_DASHBOARD_SHEET_NAME);
-  if (dashboardSheet && settingsSheet) {
-    var userImportSelection = dashboardSheet.getRange(dashboardEditRange[4]).getValue();
-    var importSelectionText = dashboardSheet.getRange(dashboardEditRange[6]).getValue();
-    var importSelectionTextSubtitle = dashboardSheet.getRange(dashboardEditRange[7]).getValue();
+  if (!dashboardSheet || !settingsSheet) {
+    SpreadsheetApp.getActiveSpreadsheet().toast("Unable to find '" + WISH_TALLY_DASHBOARD_SHEET_NAME + "' or '" + WISH_TALLY_SETTINGS_SHEET_NAME + "'", "Missing Sheets");
+    return;
+  }
 
-    var autoImport = dashboardSheet.getRange(dashboardEditRange[5]).getValue();
-    if (importSelectionText==autoImport) {
-      importSelectionTextSubtitle = "Please note Feedback URL no longer works for Auto Import\n[PC Only]\nDirectory (Double click below):\n%USERPROFILE%/AppData/LocalLow/miHoYo/Genshin Impact/\n\nCheck 'output_log.txt' for URL when visiting your Wish History in game";
-    }
-    const result = displayUserPrompt(importSelectionText, importSelectionTextSubtitle);
+  var userImportSelection = dashboardSheet.getRange(dashboardEditRange[4]).getValue();
+  var importSelectionText = dashboardSheet.getRange(dashboardEditRange[6]).getValue();
+  var importSelectionTextSubtitle = dashboardSheet.getRange(dashboardEditRange[7]).getValue();
 
-    var button = result.getSelectedButton();
-    if (button == SpreadsheetApp.getUi().Button.OK) {
-      var urlInput = result.getResponseText();
-      if (userImportSelection == importSelectionText) {
-        settingsSheet.getRange("D6").setValue(urlInput);
-        importDataManagement();
-      } else {
-        settingsSheet.getRange("D35").setValue(urlInput);
-        importFromAPI();
-      }
-    }
+  var autoImport = dashboardSheet.getRange(dashboardEditRange[5]).getValue();
+  if (importSelectionText === autoImport) {
+    importSelectionTextSubtitle = "Please note Feedback URL no longer works for Auto Import\n[PC Only]\nDirectory (Double click below):\n%USERPROFILE%/AppData/LocalLow/miHoYo/Genshin Impact/\n\nCheck 'output_log.txt' for URL when visiting your Wish History in game";
+  }
+  const result = displayUserPrompt(importSelectionText, importSelectionTextSubtitle);
+
+  var button = result.getSelectedButton();
+  if (button !== SpreadsheetApp.getUi().Button.OK) {
+    return;
+  }
+  var urlInput = result.getResponseText();
+
+  if (userImportSelection === importSelectionText) {
+    settingsSheet.getRange("D6").setValue(urlInput);
+    importDataManagement();
   } else {
-    SpreadsheetApp.getActiveSpreadsheet().toast("Unable to find '"+ WISH_TALLY_DASHBOARD_SHEET_NAME + "' or '" + WISH_TALLY_SETTINGS_SHEET_NAME + "'", "Missing Sheets");
+    settingsSheet.getRange("D35").setValue(urlInput);
+    importFromAPI();
   }
 }
 
