@@ -2,20 +2,10 @@
  * Version 3.0.1 made by yippym - 2021-10-22 21:00
  * https://github.com/Yippy/wish-tally-sheet
  */
-var errorCodeNotEncountered = true;
 
-function importFromAPI() {
-  errorCodeNotEncountered = true;
-  var settingsSheet = getSettingsSheet();
-  settingsSheet.getRange("E42").setValue(new Date());
-  settingsSheet.getRange("E43").setValue("");
 
-  var urlForAPI = settingsSheet.getRange("D35").getValue();
-  settingsSheet.getRange("D35").setValue("");
-  if (AUTO_IMPORT_URL_FOR_API_BYPASS != "") {
-    urlForAPI = AUTO_IMPORT_URL_FOR_API_BYPASS;
-  }
-  urlForAPI = urlForAPI.toString().split("&");
+function extractAuthKeyFromInput(userInput) {
+  urlForAPI = userInput.toString().split("&");
   var foundAuth = "";
   for (var i = 0; i < urlForAPI.length; i++) {
     var queryString = urlForAPI[i].toString().split("=");
@@ -26,6 +16,85 @@ function importFromAPI() {
       }
     }
   }
+  return foundAuth;
+}
+
+function testAuthKeyInputValidity(userInput) {
+  var authKey = extractAuthKeyFromInput(userInput);
+  if (authKey == "") {
+    return false;
+  }
+
+  const USING_BANNER = "Permanent Wish History";
+
+  var settingsSheet = getSettingsSheet();
+  var queryBannerCode = AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT[USING_BANNER]["gacha_type"];
+  var selectedServer = settingsSheet.getRange("B3").getValue();
+  var languageSettings = AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT[settingsSheet.getRange("B2").getValue()];
+  if (languageSettings == null) {
+    // Get default language
+    languageSettings = AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT["English"];
+  }
+  var urlForWishHistory = selectedServer == "China" ? AUTO_IMPORT_URL_CHINA : AUTO_IMPORT_URL;
+  urlForWishHistory += "?" + AUTO_IMPORT_ADDITIONAL_QUERY.join("&") + "&authkey=" + authKey + "&lang=" + languageSettings['code'] + "&gacha_type=" + queryBannerCode;
+
+  responseJson = JSON.parse(UrlFetchApp.fetch(urlForWishHistory).getContentText());
+  if (responseJson.retcode === 0) {
+    return true;
+  }
+  return false;
+}
+
+
+const CACHED_AUTHKEY_PROPERTY = "cachedAuthKey";
+// shape: {userInput: string, timeOfInput: Date}
+
+function invalidateCachedAuthKey() {
+  const userProperties = PropertiesService.getUserProperties();
+  userProperties.deleteProperty(CACHED_AUTHKEY_PROPERTY);
+}
+
+function setCachedAuthKeyInput(userInput) {
+  const userProperties = PropertiesService.getUserProperties();
+  userProperties.setProperty(CACHED_AUTHKEY_PROPERTY, { userInput, timeOfInput: new Date() });
+}
+
+function getCachedAuthKeyInput() {
+  const userProperties = PropertiesService.getUserProperties();
+  const cachedAuthKey = userProperties.getProperty(CACHED_AUTHKEY_PROPERTY);
+
+  if (cachedAuthKey == null) {
+    return null;
+  }
+
+  const timeOfInput = cachedAuthKey.timeOfInput;
+  const timeDiff = new Date().getTime() - timeOfInput.getTime();
+  if (timeDiff > CACHED_AUTHKEY_TIMEOUT) {
+    invalidateCachedAuthKey();
+    return null;
+  }
+
+  if (!testAuthKeyInputValidity(cachedAuthKey.userInput)) {
+    invalidateCachedAuthKey();
+    return null;
+  }
+
+  return cachedAuthKey.userInput;
+}
+
+
+var errorCodeNotEncountered = true;
+
+function importFromAPI(urlForAPI) {
+  errorCodeNotEncountered = true;
+  var settingsSheet = getSettingsSheet();
+  settingsSheet.getRange("E42").setValue(new Date());
+  settingsSheet.getRange("E43").setValue("");
+
+  if (AUTO_IMPORT_URL_FOR_API_BYPASS != "") {
+    urlForAPI = AUTO_IMPORT_URL_FOR_API_BYPASS;
+  }
+  var foundAuth = extractAuthKeyFromInput(urlForAPI);
   var bannerName;
   var bannerSheet;
   var bannerSettings;
