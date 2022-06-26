@@ -1,5 +1,5 @@
 /*
- * Version 3.0.1 made by yippym - 2021-10-22 21:00
+ * Version 3.40 made by yippym - 2021-10-22 21:00
  * https://github.com/Yippy/wish-tally-sheet
  */
 
