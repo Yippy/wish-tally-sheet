@@ -12,27 +12,35 @@ function importButtonScript() {
   }
 
   var userImportSelection = dashboardSheet.getRange(dashboardEditRange[4]).getValue();
+  var autoImportSelection = dashboardSheet.getRange(dashboardEditRange[5]).getValue();
   var importSelectionText = dashboardSheet.getRange(dashboardEditRange[6]).getValue();
   var importSelectionTextSubtitle = dashboardSheet.getRange(dashboardEditRange[7]).getValue();
 
-  var autoImport = dashboardSheet.getRange(dashboardEditRange[5]).getValue();
-  if (importSelectionText === autoImport) {
+  var urlInput = null;
+
+  if (importSelectionText === autoImportSelection) {
+    urlInput = getCachedAuthKeyInput();
     importSelectionTextSubtitle = "Please note Feedback URL no longer works for Auto Import\n[PC Only]\nDirectory (Double click below):\n%USERPROFILE%/AppData/LocalLow/miHoYo/Genshin Impact/\n\nCheck 'output_log.txt' for URL when visiting your Wish History in game";
   }
-  const result = displayUserPrompt(importSelectionText, importSelectionTextSubtitle);
 
-  var button = result.getSelectedButton();
-  if (button !== SpreadsheetApp.getUi().Button.OK) {
-    return;
+  if (urlInput === null) {
+    const result = displayUserPrompt(importSelectionText, importSelectionTextSubtitle);
+    var button = result.getSelectedButton();
+    if (button !== SpreadsheetApp.getUi().Button.OK) {
+      return;
+    }
+    urlInput = result.getResponseText();
+
+    if (importSelectionText === autoImportSelection) {
+      setCachedAuthKeyInput(urlInput);
+    }
   }
-  var urlInput = result.getResponseText();
 
   if (userImportSelection === importSelectionText) {
     settingsSheet.getRange("D6").setValue(urlInput);
     importDataManagement();
   } else {
-    settingsSheet.getRange("D35").setValue(urlInput);
-    importFromAPI();
+    importFromAPI(urlInput);
   }
 }
 
