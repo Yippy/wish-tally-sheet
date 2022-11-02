@@ -36,7 +36,7 @@ function displayUserPrompt(titlePrompt, messagePrompt) {
   var result = ui.prompt(
     titlePrompt,
     messagePrompt,
-    SpreadsheetApp.getUi().ButtonSet.OK_CANCEL);
+    SpreadsheetApp.getUi().ButtonSet.YES_NO_CANCEL);
   return result;
 }
 
