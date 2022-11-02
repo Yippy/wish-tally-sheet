@@ -6,17 +6,37 @@
 function displayAbout() {
   var sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
   if (sheetSource) {
-    var aboutSource = sheetSource.getSheetByName('About');
+    var aboutSource = sheetSource.getSheetByName(WISH_TALLY_SOURCE_ABOUT_SHEET_NAME);
     var titleString = aboutSource.getRange("B1").getValue();
     var htmlString = aboutSource.getRange("B2").getValue();
     var widthSize = aboutSource.getRange("B3").getValue();
     var heightSize = aboutSource.getRange("B4").getValue();
-    
-    
+
     var htmlOutput = HtmlService
     .createHtmlOutput(htmlString)
     .setWidth(widthSize) //optional
     .setHeight(heightSize); //optional
+    SpreadsheetApp.getUi().showModalDialog(htmlOutput, titleString);
+  } else {
+    var message = 'Unable to connect to source';
+    var title = 'Error';
+    SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+  }
+}
+
+function displayMaintenance() {
+  var sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
+  if (sheetSource) {
+    var aboutSource = sheetSource.getSheetByName(WISH_TALLY_SOURCE_MAINTENANCE_SHEET_NAME);
+    var titleString = aboutSource.getRange("B1").getValue();
+    var htmlString = aboutSource.getRange("B2").getValue();
+    var widthSize = aboutSource.getRange("B3").getValue();
+    var heightSize = aboutSource.getRange("B4").getValue();
+
+    var htmlOutput = HtmlService
+      .createHtmlOutput(htmlString)
+      .setWidth(widthSize) //optional
+      .setHeight(heightSize); //optional
     SpreadsheetApp.getUi().showModalDialog(htmlOutput, titleString);
   } else {
     var message = 'Unable to connect to source';
