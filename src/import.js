@@ -15,18 +15,45 @@ function importButtonScript() {
   var autoImportSelection = dashboardSheet.getRange(dashboardEditRange[5]).getValue();
   var importSelectionText = dashboardSheet.getRange(dashboardEditRange[6]).getValue();
   var importSelectionTextSubtitle = dashboardSheet.getRange(dashboardEditRange[7]).getValue();
-
+  var titleString = "Tutorial";
+  var htmlString = "<center><b>How to use Auto Import</b></center><br/></br>[PC] <a href=\"https://www.youtube.com/watch?v=_6Bs2h7CYrI\" target=\"_blank\">YouTube</a><br/></br>[iOS] YouTube coming soon<br/></br>[Android]Not possible<br/></br>[PlayStation]Not possible";
+  var widthSize = 250;
+  var heightSize = 250;
   var urlInput = null;
-
+  var isInfoRetrieved = false;
   if (importSelectionText === autoImportSelection) {
     urlInput = getCachedAuthKeyInput();
-    importSelectionTextSubtitle = "Please note Feedback URL no longer works for Auto Import\n[PC Only]\nDirectory (Double click below):\n%USERPROFILE%/AppData/LocalLow/miHoYo/Genshin Impact/\n\nCheck 'output_log.txt' for URL when visiting your Wish History in game";
+
+    var sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
+    // Check source is available
+    if (sheetSource) {
+      // attempt to load latest message for auto import, as Genshin Impact can sometimes change method.
+      var sheetAutoImportSource = sheetSource.getSheetByName(WISH_TALLY_SOURCE_AUTO_IMPORT_SHEET_NAME);
+      if (sheetAutoImportSource) {
+        titleString = sheetAutoImportSource.getRange("B1").getValue();
+        htmlString = sheetAutoImportSource.getRange("B2").getValue();
+        widthSize = sheetAutoImportSource.getRange("B3").getValue();
+        heightSize = sheetAutoImportSource.getRange("B4").getValue();
+        importSelectionTextSubtitle = sheetAutoImportSource.getRange("B5").getValue();
+        isInfoRetrieved = true;
+      }
+    }
+    if (!isInfoRetrieved) {
+      importSelectionTextSubtitle = "Please note Feedback URL no longer works for Auto Import\n[PC Only]\nVisit the wish history in-game, fully close the game. Open the file browser in Window and find your game installation folder to find data_2 file at:\n\\Genshin Impact\\Genshin Impact game\\GenshinImpact_Data\\webCaches\\Cache\\Cache_Data\\ \nOpen 'data_2' with NotePad and find the latest URL near the bottom.\nPress [YES] to continue\nPress [NO] to visit tutorial";
+    }
   }
 
   if (urlInput === null) {
     const result = displayUserPrompt(importSelectionText, importSelectionTextSubtitle);
     var button = result.getSelectedButton();
-    if (button !== SpreadsheetApp.getUi().Button.OK) {
+    if (button !== SpreadsheetApp.getUi().Button.YES) {
+      if (button == SpreadsheetApp.getUi().Button.NO) {
+        var htmlOutput = HtmlService
+          .createHtmlOutput(htmlString)
+          .setWidth(widthSize) //optional
+          .setHeight(heightSize); //optional
+        SpreadsheetApp.getUi().showModalDialog(htmlOutput, titleString);
+      }
       return;
     }
     urlInput = result.getResponseText();
