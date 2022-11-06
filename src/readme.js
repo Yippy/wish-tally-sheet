@@ -2,47 +2,41 @@
  * Version 3.40 made by yippym - 2021-10-22 21:00
  * https://github.com/Yippy/wish-tally-sheet
  */
+function displayModalDiagram(sheet, sheetName, titleRange, htmlRange, widthSizeRange, heightSizeRange) {
+  var isModalDisplayed = false;
+  if (sheet) {
+    var sheetByName = sheet.getSheetByName(sheetName);
+    if (sheetByName) {
+      var titleString = sheetByName.getRange(titleRange).getValue();
+      var htmlString = sheetByName.getRange(htmlRange).getValue();
+      var widthSize = sheetByName.getRange(widthSizeRange).getValue();
+      var heightSize = sheetByName.getRange(heightSizeRange).getValue();
 
-function displayAbout() {
-  var sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
-  if (sheetSource) {
-    var aboutSource = sheetSource.getSheetByName(WISH_TALLY_SOURCE_ABOUT_SHEET_NAME);
-    var titleString = aboutSource.getRange("B1").getValue();
-    var htmlString = aboutSource.getRange("B2").getValue();
-    var widthSize = aboutSource.getRange("B3").getValue();
-    var heightSize = aboutSource.getRange("B4").getValue();
-
-    var htmlOutput = HtmlService
-    .createHtmlOutput(htmlString)
-    .setWidth(widthSize) //optional
-    .setHeight(heightSize); //optional
-    SpreadsheetApp.getUi().showModalDialog(htmlOutput, titleString);
-  } else {
-    var message = 'Unable to connect to source';
+      var htmlOutput = HtmlService
+        .createHtmlOutput(htmlString)
+        .setWidth(widthSize) //optional
+        .setHeight(heightSize); //optional
+      SpreadsheetApp.getUi().showModalDialog(htmlOutput, titleString);
+      isModalDisplayed = true;
+    }
+  }
+  if (!isModalDisplayed) {
+    var message = 'Unable to connect to source, to find sheet "'+sheetName+'".';
     var title = 'Error';
     SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
   }
 }
 
-function displayMaintenance() {
-  var sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
-  if (sheetSource) {
-    var aboutSource = sheetSource.getSheetByName(WISH_TALLY_SOURCE_MAINTENANCE_SHEET_NAME);
-    var titleString = aboutSource.getRange("B1").getValue();
-    var htmlString = aboutSource.getRange("B2").getValue();
-    var widthSize = aboutSource.getRange("B3").getValue();
-    var heightSize = aboutSource.getRange("B4").getValue();
+function displayAbout() {
+  displayModalDiagram(SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_REDIRECT_ID), WISH_TALLY_SOURCE_ABOUT_SHEET_NAME, "B1", "B2", "B3", "B4");
+}
 
-    var htmlOutput = HtmlService
-      .createHtmlOutput(htmlString)
-      .setWidth(widthSize) //optional
-      .setHeight(heightSize); //optional
-    SpreadsheetApp.getUi().showModalDialog(htmlOutput, titleString);
-  } else {
-    var message = 'Unable to connect to source';
-    var title = 'Error';
-    SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
-  }
+function displayMaintenance() {
+  displayModalDiagram(SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_REDIRECT_ID), WISH_TALLY_REDIRECT_SOURCE_MAINTENANCE_SHEET_NAME, "B1", "B2", "B3", "B4");
+}
+
+function displayAutoImport() {
+  displayModalDiagram(SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_REDIRECT_ID), WISH_TALLY_REDIRECT_SOURCE_AUTO_IMPORT_SHEET_NAME, "B1", "B2", "B3", "B4");
 }
 
 function displayReadme() {
