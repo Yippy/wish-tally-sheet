@@ -18,6 +18,21 @@ function importButtonScript() {
   var urlInput = null;
   if (importSelectionText === autoImportSelection) {
     urlInput = getCachedAuthKeyInput();
+    var isInfoRetrieved = false;
+    var sheetRedirectSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_REDIRECT_ID);
+    // Check redirect source is available
+    if (sheetRedirectSource) {
+      // attempt to load latest message for auto import, as Genshin Impact can sometimes change method.
+      var sheetAutoImportSource = sheetRedirectSource.getSheetByName(WISH_TALLY_REDIRECT_SOURCE_AUTO_IMPORT_SHEET_NAME);
+      if (sheetAutoImportSource) {
+        importSelectionTextSubtitle = sheetAutoImportSource.getRange("B5").getValue();
+        isInfoRetrieved = true;
+      }
+    }
+    if (!isInfoRetrieved) {
+      // Resort to default when blurp has not been retrieved
+      importSelectionTextSubtitle = "Please note Feedback URL no longer works for Auto Import\n\nPress [YES] to continue\nPress [NO] to visit tutorial";
+    }
   }
 
   if (urlInput === null) {
