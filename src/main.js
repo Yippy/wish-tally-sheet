@@ -189,22 +189,29 @@ function saveCollectionSettings(constellationsSheet, settingsSheet, itemsRange, 
 function restoreCollectionSettings(constellationsSheet, settingsSheet, itemsRange, optionsRange) {
   var saveData = settingsSheet.getRange(itemsRange).getValue().split(",");
   var saveDict = [];
+  var saveDictCounter = 0;
   for (var i = 0; i < saveData.length; i++) {
     var valuesSorting = saveData[i].split("=");
     if (valuesSorting.length > 2) {
       var nameData = valuesSorting[0];
       valuesSorting.splice(0, 1);
       saveDict[nameData] = valuesSorting;
+      saveDictCounter++;
     }
   }
   var maxColumns = constellationsSheet.getMaxColumns();
   var columnValue = constellationsSheet.getRange(1, 2).getValue();
-  if (columnValue > 0) {
+
+  if (columnValue > 0 && saveDictCounter > 0) {
     var startValue = constellationsSheet.getRange(1, columnValue).getValue();
     var nextValue = constellationsSheet.getRange(1, columnValue+1).getValue();
     var userInputColumnValue = constellationsSheet.getRange(1, columnValue+2).getValue();
     var saveRowsValue = constellationsSheet.getRange(1, columnValue+4).getValue();
     for (var c = startValue; c <= maxColumns; c += nextValue) {
+      if (saveDictCounter == 0) {
+        // No more save data to restore.
+        break;
+      }
       var nameValue = constellationsSheet.getRange(1, c).getValue();
       if (nameValue != "") {
         var values = saveDict[nameValue];
@@ -214,6 +221,7 @@ function restoreCollectionSettings(constellationsSheet, settingsSheet, itemsRang
             dataArray.push([values[i]]);
           }
           constellationsSheet.getRange(16, c - userInputColumnValue,dataArray.length,1).setValues(dataArray);
+          saveDictCounter--;
         }
       }
     }
@@ -369,7 +377,7 @@ function quickUpdate() {
       var changelogSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_CHANGELOG_SHEET_NAME);
       if (changelogSheet) {
         try {
-          var sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
+          var sheetSource = getSourceDocument();
           if (sheetSource) {
             // get latest banners
             var sheetPityChecker = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_PITY_CHECKER_SHEET_NAME);
@@ -488,14 +496,12 @@ function updateItemsList() {
     dashboardSheet.getRange(dashboardEditRange[0]).setValue("Update Items: Running script, please wait.");
     dashboardSheet.getRange(dashboardEditRange[0]).setFontColor("yellow").setFontWeight("bold");
   }
-  var sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
+  var sheetSource = getSourceDocument();
   // Check source is available
   if (sheetSource) {
-    // attempt to load sheet from source, to prevent removing sheets first.
-    var sheetAvailableSource = sheetSource.getSheetByName(WISH_TALLY_AVAILABLE_SHEET_NAME);
-    var isSourceAvailable = sheetAvailableSource.getRange("F1").getValue();
-    if (isSourceAvailable == "YES") {
     try {
+      // attempt to load sheet from source, to prevent removing sheets first.
+      var sheetAvailableSource = sheetSource.getSheetByName(WISH_TALLY_AVAILABLE_SHEET_NAME);
       // Avoid Exception: You can't remove all the sheets in a document.Details
       var placeHolderSheet = null;
       if (SpreadsheetApp.getActive().getSheets().length == 1) {
@@ -818,12 +824,6 @@ function updateItemsList() {
       var message = 'Unable to connect to source';
       var title = 'Error';
       SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
-      updateItemHasFailed = true;
-      settingsSheet.getRange(5, 7).setValue(false);
-      settingsSheet.getRange("H6").setValue(new Date());
-    }
-    } else {
-      displayMaintenance();
       updateItemHasFailed = true;
       settingsSheet.getRange(5, 7).setValue(false);
       settingsSheet.getRange("H6").setValue(new Date());
