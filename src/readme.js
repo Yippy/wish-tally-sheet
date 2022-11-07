@@ -28,7 +28,7 @@ function displayModalDiagram(sheet, sheetName, titleRange, htmlRange, widthSizeR
 }
 
 function displayAbout() {
-  displayModalDiagram(SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_REDIRECT_ID), WISH_TALLY_SOURCE_ABOUT_SHEET_NAME, "B1", "B2", "B3", "B4");
+  displayModalDiagram(SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_REDIRECT_ID), WISH_TALLY_REDIRECT_SOURCE_ABOUT_SHEET_NAME, "B1", "B2", "B3", "B4");
 }
 
 function displayMaintenance() {
