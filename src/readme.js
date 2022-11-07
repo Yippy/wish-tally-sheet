@@ -76,19 +76,46 @@ function displayReadme() {
     }
     var sheetREADME = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_README_SHEET_NAME);
     // Refresh Contents Links
-    var contentsAvailable = sheetREADME.getRange(13, 1).getValue();
+    var hyperlinkColumn = 1;
+    var contentsAvailable = sheetREADME.getRange(13, hyperlinkColumn).getValue();
     var contentsStartIndex = 15;
-    
-    for (var i = 0; i < contentsAvailable; i++) {
-      var valueRange = sheetREADME.getRange(contentsStartIndex+i, 1).getValue();
-      var formulaRange = sheetREADME.getRange(contentsStartIndex+i, 1).getFormula();
-      // Display for user, doesn't do anything
-      sheetREADME.getRange(contentsStartIndex+i, 1).setFormula(formulaRange);
- 
-      // Grab URL RichTextValue from Source
-      const range = sheetREADMESource.getRange(contentsStartIndex+i, 1);
-      const RichTextValue = range.getRichTextValue().getRuns();
-      const res = RichTextValue.reduce((ar, e) => {
+    generateRichTextLinks(sheetREADME, contentsAvailable, contentsStartIndex, hyperlinkColumn, false);
+    reorderSheets();
+    SpreadsheetApp.getActive().setActiveSheet(sheetREADME);
+  } else {
+    var message = 'Unable to connect to source';
+    var title = 'Error';
+    SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+  }
+}
+
+function generateRichTextLinks(sheet, contentsAvailable, contentsStartIndex, hyperlinkColumn, isBookmarkReference) {
+  var richTextValues = [];
+  var referenceRanges = null;
+  var sheetId = sheet.getSheetId();
+  if (isBookmarkReference) {
+    referenceRanges=  sheet.getRange(contentsStartIndex, hyperlinkColumn+1, contentsAvailable, 1).getValues();
+  } else {
+    referenceRanges=  sheet.getRange(contentsStartIndex, hyperlinkColumn, contentsAvailable, 1).getRichTextValues();
+  }
+
+  var valueRanges = sheet.getRange(contentsStartIndex, hyperlinkColumn, contentsAvailable, 1).getValues();
+  for (var i = 0; i < contentsAvailable; i++) {
+    var valueRange = valueRanges[i][0];
+    var linkURL = "";
+    if (isBookmarkReference) {
+      // Used in Characters and Weapons
+      var bookmarkValue = referenceRanges[i][0];
+      if (valueRange.includes("#gid=")) {
+        // Meaning that the cell does not have a value
+        valueRange = "";
+      } else {
+        linkURL = "#gid="+sheetId+'range='+bookmarkValue;
+      }
+    } else {
+      // Used in README, grab URL RichTextValue from cell
+      const richTextValue = referenceRanges[i][0].getRuns();
+      const res = richTextValue.reduce((ar, e) => {
         const url = e.getLinkUrl();
         if (url) ar.push(url);
           return ar;
@@ -96,20 +123,26 @@ function displayReadme() {
       //  Convert to string
       var resString = res+ "";
       var arrayString = resString.split("=");
+
       if (arrayString.length > 1) {
         var text = arrayString[2];
-        const richText = SpreadsheetApp.newRichTextValue()
-          .setText(valueRange)
-          .setLinkUrl(["#gid="+sheetREADME.getSheetId()+'range='+text])
-          .build();
-        sheetREADME.getRange(contentsStartIndex+i, 1).setRichTextValue(richText);
+        linkURL = "#gid="+sheetId+'range='+text;
+      }
+
+      if (valueRange.includes("#gid=")) {
+        valueRange = "";
       }
     }
-    reorderSheets();
-    SpreadsheetApp.getActive().setActiveSheet(sheetREADME);
-  } else {
-    var message = 'Unable to connect to source';
-    var title = 'Error';
-    SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+    const richText = SpreadsheetApp.newRichTextValue()
+      .setText(valueRange)
+      .setLinkUrl([linkURL])
+      .build();
+
+    richTextValues.push([richText]);
+  }
+
+  var richTextValuesLength = richTextValues.length;
+  if (richTextValues.length > 0) {
+    sheet.getRange(contentsStartIndex, hyperlinkColumn, richTextValuesLength, 1).setRichTextValues(richTextValues);
   }
 }

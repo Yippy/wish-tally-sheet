@@ -159,7 +159,17 @@ function saveCollectionSettings(constellationsSheet, settingsSheet, itemsRange, 
       if (nameValue != "") {
         var dataUserInput = nameValue;
         var saveValues = constellationsSheet.getRange(16, c - userInputColumnValue,saveRowsValue,1).getValues();
-        saveData.push(dataUserInput+"="+saveValues.join("="));
+        var isDataAvailableToSave = false;
+        for (var s = 0; s < saveValues.length; s++) {
+          var saveValue = saveValues[s];
+          if (saveValue != null && saveValue != "" && saveValue != "0") {
+            isDataAvailableToSave = true;
+            break;
+          }
+        }
+        if (isDataAvailableToSave == true) {
+          saveData.push(dataUserInput+"="+saveValues.join("="));
+        }
       }
     }
     if (saveData.length > 0) {
@@ -481,9 +491,11 @@ function updateItemsList() {
   var sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
   // Check source is available
   if (sheetSource) {
+    // attempt to load sheet from source, to prevent removing sheets first.
+    var sheetAvailableSource = sheetSource.getSheetByName(WISH_TALLY_AVAILABLE_SHEET_NAME);
+    var isSourceAvailable = sheetAvailableSource.getRange("F1").getValue();
+    if (isSourceAvailable == "YES") {
     try {
-      // attempt to load sheet from source, to prevent removing sheets first.
-      var sheetAvailableSource = sheetSource.getSheetByName(WISH_TALLY_AVAILABLE_SHEET_NAME);
       // Avoid Exception: You can't remove all the sheets in a document.Details
       var placeHolderSheet = null;
       if (SpreadsheetApp.getActive().getSheets().length == 1) {
@@ -679,41 +691,23 @@ function updateItemsList() {
         var sheetConstellationSource;
         if (settingsSheet) {
           var languageFound = settingsSheet.getRange(2, 2).getValue();
-          sheetConstellationSource = sheetSource.getSheetByName(WISH_TALLY_CHARACTERS_OLD_SHEET_NAME+"-"+languageFound);
+          sheetConstellationSource = sheetSource.getSheetByName(WISH_TALLY_CHARACTERS_SHEET_NAME+"-"+languageFound);
         }
         if (sheetConstellationSource) {
           // Found language
         } else {
           // Default
-          sheetConstellationSource = sheetSource.getSheetByName(WISH_TALLY_CHARACTERS_OLD_SHEET_NAME);
+          sheetConstellationSource = sheetSource.getSheetByName(WISH_TALLY_CHARACTERS_SHEET_NAME);
         }
         if (sheetConstellationSource) {
           sheetConstellation = sheetConstellationSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName(WISH_TALLY_CHARACTERS_SHEET_NAME);
+
           // Refresh Contents Links
           var contentsAvailable = sheetConstellation.getRange(1, 1).getValue();
+          var hyperlinkColumn = sheetConstellation.getRange(1, 3).getValue();
           var contentsStartIndex = 2;
-          var richTextValues = [];
-          for (var i = 0; i < contentsAvailable; i++) {
-            var valueRange = sheetConstellation.getRange(contentsStartIndex+i, 3).getValue();
-            var formulaRange = sheetConstellation.getRange(contentsStartIndex+i, 3).getFormula();
-            var textRange = formulaRange.split(",");
-            var bookmarkRange = formulaRange.split("=");
-            if (textRange.length > 1) {
-              textRange = textRange[1].split(")")[0];
-            }
-            if (bookmarkRange.length > 2) {
-              bookmarkRange = bookmarkRange[3].split('"')[0];
-            }
-            const richText = SpreadsheetApp.newRichTextValue()
-            .setText(valueRange)
-            .setLinkUrl(["#gid="+sheetConstellation.getSheetId()+'range='+bookmarkRange])
-            .build();
-            richTextValues.push([richText]);
-          }
-          var richTextValuesLength = richTextValues.length;
-          if (richTextValuesLength > 0) {
-            sheetConstellation.getRange(contentsStartIndex, 3, richTextValuesLength, 1).setRichTextValues(richTextValues);
-          }
+          generateRichTextLinks(sheetConstellation, contentsAvailable, contentsStartIndex, hyperlinkColumn, true);
+
           if (settingsSheet) {
             restoreCollectionSettings(sheetConstellation, settingsSheet,"G7","H7");
           }
@@ -744,31 +738,13 @@ function updateItemsList() {
         }
         if (sheetWeaponsSource) {
           sheetWeapons = sheetWeaponsSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName(WISH_TALLY_WEAPONS_SHEET_NAME);
+
           // Refresh Contents Links
           var contentsAvailable = sheetWeapons.getRange(1, 1).getValue();
+          var hyperlinkColumn = sheetWeapons.getRange(1, 3).getValue();
           var contentsStartIndex = 2;
-          var richTextValues = [];
-          for (var i = 0; i < contentsAvailable; i++) {
-            var valueRange = sheetWeapons.getRange(contentsStartIndex+i, 3).getValue();
-            var formulaRange = sheetWeapons.getRange(contentsStartIndex+i, 3).getFormula();
-            var textRange = formulaRange.split(",");
-            var bookmarkRange = formulaRange.split("=");
-            if (textRange.length > 1) {
-              textRange = textRange[1].split(")")[0];
-            }
-            if (bookmarkRange.length > 2) {
-              bookmarkRange = bookmarkRange[3].split('"')[0];
-            }
-            const richText = SpreadsheetApp.newRichTextValue()
-            .setText(valueRange)
-            .setLinkUrl(["#gid="+sheetWeapons.getSheetId()+'range='+bookmarkRange])
-            .build();
-            richTextValues.push([richText]);
-          }
-          var richTextValuesLength = richTextValues.length;
-          if (richTextValuesLength > 0) {
-            sheetConstellation.getRange(contentsStartIndex, 3, richTextValuesLength, 1).setRichTextValues(richTextValues);
-          }
+          generateRichTextLinks(sheetWeapons, contentsAvailable, contentsStartIndex, hyperlinkColumn, true);
+
           if (settingsSheet) {
             restoreCollectionSettings(sheetWeapons, settingsSheet,"G8","H8");
           }
@@ -842,6 +818,12 @@ function updateItemsList() {
       var message = 'Unable to connect to source';
       var title = 'Error';
       SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+      updateItemHasFailed = true;
+      settingsSheet.getRange(5, 7).setValue(false);
+      settingsSheet.getRange("H6").setValue(new Date());
+    }
+    } else {
+      displayMaintenance();
       updateItemHasFailed = true;
       settingsSheet.getRange(5, 7).setValue(false);
       settingsSheet.getRange("H6").setValue(new Date());
