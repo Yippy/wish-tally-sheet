@@ -44,7 +44,7 @@ function addFormulaWishHistory() {
 }
 
 function addFormulaByWishHistoryName(name) {
-  var sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
+  var sheetSource = getSourceDocument();
   if (sheetSource) {
     // Add Language
     var wishHistorySource;
@@ -109,7 +109,7 @@ function findWishHistoryByName(name, sheetSource) {
   var wishHistorySheet = SpreadsheetApp.getActive().getSheetByName(name);
   if (wishHistorySheet == null) {
     if (sheetSource == null) {
-      sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
+      sheetSource = getSourceDocument();
     }
     if (sheetSource) {
       var sheetCopySource = sheetSource.getSheetByName(WISH_TALLY_WISH_HISTORY_SHEET_NAME);

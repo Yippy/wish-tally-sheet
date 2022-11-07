@@ -35,12 +35,16 @@ function displayMaintenance() {
   displayModalDiagram(SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_REDIRECT_ID), WISH_TALLY_REDIRECT_SOURCE_MAINTENANCE_SHEET_NAME, "B1", "B2", "B3", "B4");
 }
 
+function displayBackup() {
+  displayModalDiagram(SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_REDIRECT_ID), WISH_TALLY_REDIRECT_SOURCE_BACKUP_SHEET_NAME, "B1", "B2", "B3", "B4");
+}
+
 function displayAutoImport() {
   displayModalDiagram(SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_REDIRECT_ID), WISH_TALLY_REDIRECT_SOURCE_AUTO_IMPORT_SHEET_NAME, "B1", "B2", "B3", "B4");
 }
 
 function displayReadme() {
-  var sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
+  var sheetSource = getSourceDocument();
   if (sheetSource) {
     // Avoid Exception: You can't remove all the sheets in a document.Details
     var placeHolderSheet = null;

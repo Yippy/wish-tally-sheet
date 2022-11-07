@@ -104,7 +104,7 @@ function getSettingsSheet() {
   var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
   var sheetSource;
   if (!settingsSheet) {
-    sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
+    sheetSource = getSourceDocument();
     var sheetSettingSource = sheetSource.getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
     if (sheetSettingSource) {
       settingsSheet = sheetSettingSource.copyTo(SpreadsheetApp.getActiveSpreadsheet());
@@ -117,7 +117,7 @@ function getSettingsSheet() {
   var dashboardSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_DASHBOARD_SHEET_NAME);
   if (!dashboardSheet) {
     if (!sheetSource) {
-      sheetSource = SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_ID);
+      sheetSource = getSourceDocument();
     }
     var sheetDashboardSource = sheetSource.getSheetByName(WISH_TALLY_DASHBOARD_SHEET_NAME);
     if (sheetDashboardSource) {
