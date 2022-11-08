@@ -43,6 +43,10 @@ function displayAutoImport() {
   displayModalDiagram(SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_REDIRECT_ID), WISH_TALLY_REDIRECT_SOURCE_AUTO_IMPORT_SHEET_NAME, "B1", "B2", "B3", "B4");
 }
 
+function displayHoYoLab() {
+  displayModalDiagram(SpreadsheetApp.openById(WISH_TALLY_SHEET_SOURCE_REDIRECT_ID), WISH_TALLY_REDIRECT_SOURCE_HOYOLAB_SHEET_NAME, "B1", "B2", "B3", "B4");
+}
+
 function displayReadme() {
   var sheetSource = getSourceDocument();
   if (sheetSource) {

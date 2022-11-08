@@ -63,9 +63,9 @@ function importHoYoLabCharactersButtonScript() {
     } else {
       message += `\nGenshin Impact UID: '`+uidInput+`'\n\nPress 'Yes' to use previous saved HoYoLab UID (ltuid).`;
     }
-    message += `\nPress 'No' to begin editing HoYoLab UID (ltuid).`;
+    message += `\nPress 'No' to begin editing HoYoLab UID (ltuid).\nPress 'Cancel' to check tutorial.`;
 
-    const button = displayUserAlert("Import from HoYoLab", message, SpreadsheetApp.getUi().ButtonSet.YES_NO);
+    const button = displayUserAlert("Import from HoYoLab", message, SpreadsheetApp.getUi().ButtonSet.YES_NO_CANCEL);
     if (button == SpreadsheetApp.getUi().Button.YES) {
       if (uidInput) {
         attemptHoYoLab(ltuidInput, ltokenInput, uidInput);
@@ -74,6 +74,8 @@ function importHoYoLabCharactersButtonScript() {
       }
     } else if (button == SpreadsheetApp.getUi().Button.NO) {
       displayHoYoLabLtuid();
+    } else if (button == SpreadsheetApp.getUi().Button.CANCEL) {
+      displayHoYoLab();
     }
   } else {
     displayHoYoLabLtuid();
