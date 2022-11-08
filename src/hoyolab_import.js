@@ -222,7 +222,6 @@ function attemptHoYoLab(ltuidInput, ltokenInput, uidInput) {
         "level": character.level,
         "friendship_level": character.fetter,
         "owned": character.actived_constellation_num+1,
-        "weapon": character.actived_constellation_num+1,
       };
       if (character.weapon) {
         var weaponName = character.weapon.name;
@@ -301,6 +300,8 @@ function syncCollectionSettings(constellationsSheet, objects, sheetName) {
               if (override > 0) {
                 //cancel out user override, and try and get true total.
                 override = totalValue - override;
+              } else {
+                override = totalValue;
               }
               if (override >= foundObject.owned) {
                 // No need to apple any user override, if total is more than owned anyway.
