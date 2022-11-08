@@ -153,11 +153,15 @@ function saveCollectionSettings(constellationsSheet, settingsSheet, itemsRange, 
     var nextValue = constellationsSheet.getRange(1, columnValue+1).getValue();
     var userInputColumnValue = constellationsSheet.getRange(1, columnValue+2).getValue();
     var saveRowsValue = constellationsSheet.getRange(1, columnValue+4).getValue();
+    var startSaveRowValue = constellationsSheet.getRange(1, 11).getValue();
+    if (startSaveRowValue == ""||  startSaveRowValue <= 0) {
+      startSaveRowValue = 16;
+    }
     for (var c = startValue; c <= maxColumns; c += nextValue) {
       var nameValue = constellationsSheet.getRange(1, c).getValue();
       if (nameValue != "") {
         var dataUserInput = nameValue;
-        var saveValues = constellationsSheet.getRange(16, c - userInputColumnValue,saveRowsValue,1).getValues();
+        var saveValues = constellationsSheet.getRange(startSaveRowValue, c - userInputColumnValue,saveRowsValue,1).getValues();
         var isDataAvailableToSave = false;
         for (var s = 0; s < saveValues.length; s++) {
           var saveValue = saveValues[s];
@@ -206,6 +210,10 @@ function restoreCollectionSettings(constellationsSheet, settingsSheet, itemsRang
     var nextValue = constellationsSheet.getRange(1, columnValue+1).getValue();
     var userInputColumnValue = constellationsSheet.getRange(1, columnValue+2).getValue();
     var saveRowsValue = constellationsSheet.getRange(1, columnValue+4).getValue();
+    var startSaveRowValue = constellationsSheet.getRange(1, 11).getValue();
+    if (startSaveRowValue == ""||  startSaveRowValue <= 0) {
+      startSaveRowValue = 16;
+    }
     for (var c = startValue; c <= maxColumns; c += nextValue) {
       if (saveDictCounter == 0) {
         // No more save data to restore.
@@ -219,7 +227,7 @@ function restoreCollectionSettings(constellationsSheet, settingsSheet, itemsRang
           for (var i = 0; i < values.length; i++) {
             dataArray.push([values[i]]);
           }
-          constellationsSheet.getRange(16, c - userInputColumnValue,dataArray.length,1).setValues(dataArray);
+          constellationsSheet.getRange(startSaveRowValue, c - userInputColumnValue,dataArray.length,1).setValues(dataArray);
           saveDictCounter--;
         }
       }
