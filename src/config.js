@@ -44,11 +44,28 @@ var AUTO_IMPORT_ADDITIONAL_QUERY = [
 var AUTO_IMPORT_URL = "https://hk4e-api-os.mihoyo.com/event/gacha_info/api/getGachaLog";
 var AUTO_IMPORT_URL_CHINA = "https://hk4e-api.mihoyo.com/event/gacha_info/api/getGachaLog";
 
+
 var AUTO_IMPORT_URL_ERROR_CODE_AUTH_TIMEOUT = -101;
 var AUTO_IMPORT_URL_ERROR_CODE_AUTH_INVALID = -100;
 var AUTO_IMPORT_URL_ERROR_CODE_LANGUAGE_CODE = -108;
 var AUTO_IMPORT_URL_ERROR_CODE_AUTHKEY_DENIED = -109;
 var AUTO_IMPORT_URL_ERROR_CODE_REQUEST_PARAMS = -104;
+
+// thesadru/genshinstats https://github.com/thesadru/genshinstats
+var HOYOLAB_GAME_RECORD_URL = "https://bbs-api-os.hoyoverse.com/game_record/genshin/api/character";
+var HOYOLAB_GAME_RECORD_URL_CHINA = "https://api-takumi.mihoyo.com/game_record/app/genshin/api/character";
+var HOYOLAB_GAME_RECORD_DS_SALT = "6cqshh5dhw73bzxn20oexa9k516chk7s";
+var HOYOLAB_GAME_RECORD_DS_SALT_CHINA = "xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs";
+
+var UID_SERVER = {
+  1: { "is_global": false, "code": "cn_gf01", "url": HOYOLAB_GAME_RECORD_URL_CHINA, "salt": HOYOLAB_GAME_RECORD_DS_SALT_CHINA, "x-rpc-app_version": "2.11.1", "x-rpc-client_type": "5" } ,
+  2: { "is_global": false, "code": "cn_gf01", "url": HOYOLAB_GAME_RECORD_URL_CHINA, "salt": HOYOLAB_GAME_RECORD_DS_SALT_CHINA, "x-rpc-app_version": "2.11.1", "x-rpc-client_type": "5" },
+  5: { "is_global": false, "code": "cn_qd01", "url": HOYOLAB_GAME_RECORD_URL_CHINA, "salt": HOYOLAB_GAME_RECORD_DS_SALT_CHINA, "x-rpc-app_version": "2.11.1", "x-rpc-client_type": "5" },
+  6: { "is_global": true, "code": "os_usa", "url": HOYOLAB_GAME_RECORD_URL, "salt": HOYOLAB_GAME_RECORD_DS_SALT, "x-rpc-app_version": "1.5.0", "x-rpc-client_type": "4" },
+  7: { "is_global": true, "code": "os_euro", "url": HOYOLAB_GAME_RECORD_URL, "salt": HOYOLAB_GAME_RECORD_DS_SALT, "x-rpc-app_version": "1.5.0", "x-rpc-client_type": "4" },
+  8: { "is_global": true, "code": "os_asia", "url": HOYOLAB_GAME_RECORD_URL, "salt": HOYOLAB_GAME_RECORD_DS_SALT, "x-rpc-app_version": "1.5.0", "x-rpc-client_type": "4" },
+  9: { "is_global": true, "code": "os_cht", "url": HOYOLAB_GAME_RECORD_URL, "salt": HOYOLAB_GAME_RECORD_DS_SALT, "x-rpc-app_version": "1.5.0", "x-rpc-client_type": "4"},
+};
 
 // Wish Tally Const
 var WISH_TALLY_REDIRECT_SOURCE_ABOUT_SHEET_NAME = "About";
