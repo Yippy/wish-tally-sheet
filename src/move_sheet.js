@@ -69,7 +69,7 @@ function moveToSheetByName(nameOfSheet) {
       if (settingsSheet) {
         var settingOption = settingsForOptionalSheet["setting_option"];
         if (!settingsSheet.getRange(settingOption).getValue()) {
-          displayUserAlert("Optional Sheet", nameOfSheet+" has been disabled within Settings, enable this sheet at cell '"+settingOption+"', and run 'Update Items'")
+          displayUserAlert("Optional Sheet", nameOfSheet+" has been disabled within Settings, enable this sheet at cell '"+settingOption+"', and run 'Update Items'",  SpreadsheetApp.getUi().ButtonSet.OK)
         }
       }
     }

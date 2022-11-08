@@ -35,7 +35,7 @@ function importButtonScript() {
   }
 
   if (urlInput === null) {
-    const result = displayUserPrompt(importSelectionText, importSelectionTextSubtitle);
+    const result = displayUserPrompt(importSelectionText, importSelectionTextSubtitle, SpreadsheetApp.getUi().ButtonSet.YES_NO_CANCEL);
     var button = result.getSelectedButton();
     if (button !== SpreadsheetApp.getUi().Button.YES) {
       if (button == SpreadsheetApp.getUi().Button.NO) {

@@ -31,21 +31,21 @@ function generateInitialiseToolbar() {
   .addToUi();
 }
 
-function displayUserPrompt(titlePrompt, messagePrompt) {
+function displayUserPrompt(titlePrompt, messagePrompt, buttonSet) {
   const ui = SpreadsheetApp.getUi();
   var result = ui.prompt(
     titlePrompt,
     messagePrompt,
-    SpreadsheetApp.getUi().ButtonSet.YES_NO_CANCEL);
+    buttonSet);
   return result;
 }
 
-function displayUserAlert(titleAlert, messageAlert) {
+function displayUserAlert(titleAlert, messageAlert, buttonSet) {
   const ui = SpreadsheetApp.getUi();
   var result = ui.alert(
     titleAlert,
     messageAlert,
-    SpreadsheetApp.getUi().ButtonSet.OK);
+    buttonSet);
   return result;
 }
 
