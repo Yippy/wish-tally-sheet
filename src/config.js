@@ -65,18 +65,27 @@ var WISH_TALLY_SETTINGS_SHEET_NAME = "Settings";
 var WISH_TALLY_DASHBOARD_SHEET_NAME = "Dashboard";
 var WISH_TALLY_CHANGELOG_SHEET_NAME = "Changelog";
 var WISH_TALLY_PITY_CHECKER_SHEET_NAME = "Pity Checker";
+
+// Optional sheets
 var WISH_TALLY_EVENTS_SHEET_NAME = "Events";
 var WISH_TALLY_CHARACTERS_OLD_SHEET_NAME = "Constellation";
 var WISH_TALLY_CHARACTERS_SHEET_NAME = "Characters";
 var WISH_TALLY_WEAPONS_SHEET_NAME = "Weapons";
 var WISH_TALLY_RESULTS_SHEET_NAME = "Results";
+// Must match optional sheets names
+var SETTINGS_FOR_OPTIONAL_SHEET = {
+  "Events": {"setting_option": "B14"},
+  "Results": {"setting_option": "B15"},
+  "Characters": {"setting_option": "B16"},
+  "Weapons": {"setting_option": "B22"},
+}
+
 var WISH_TALLY_README_SHEET_NAME = "README";
 var WISH_TALLY_AVAILABLE_SHEET_NAME = "Available";
 var WISH_TALLY_CRYSTAL_CALCULATOR_SHEET_NAME = "Crystal Calculator";
 var WISH_TALLY_ALL_WISH_HISTORY_SHEET_NAME = "All Wish History";
 var WISH_TALLY_ITEMS_SHEET_NAME = "Items";
 var WISH_TALLY_NAME_OF_WISH_HISTORY = [WISH_TALLY_CHARACTER_EVENT_WISH_SHEET_NAME, WISH_TALLY_PERMANENT_WISH_SHEET_NAME, WISH_TALLY_WEAPON_EVENT_WISH_SHEET_NAME, WISH_TALLY_NOVICE_WISH_SHEET_NAME];
-
 // AutoHotkey Const
 var AUTOHOTKEY_SHEET_NAME = "AutoHotkey";
 var AUTOHOTKEY_SCRIPT_SHEET_NAME = "AutoHotkey-Script";

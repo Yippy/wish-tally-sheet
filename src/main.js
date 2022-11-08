@@ -534,8 +534,7 @@ function updateItemsList() {
       // Remove sheets
       var listOfSheetsToRemove = [WISH_TALLY_CHARACTERS_OLD_SHEET_NAME,WISH_TALLY_CHARACTERS_SHEET_NAME,WISH_TALLY_WEAPONS_SHEET_NAME,WISH_TALLY_EVENTS_SHEET_NAME,WISH_TALLY_RESULTS_SHEET_NAME,WISH_TALLY_PITY_CHECKER_SHEET_NAME,WISH_TALLY_ALL_WISH_HISTORY_SHEET_NAME,WISH_TALLY_ITEMS_SHEET_NAME];
 
-      var availableRanges = sheetAvailableSource.getRange(2,1, sheetAvailableSource.getMaxRows()-1,1).getValues();
-      availableRanges = String(availableRanges).split(",");
+      var availableRanges = sheetAvailableSource.getRange(2,1, sheetAvailableSource.getMaxRows()-1,5).getValues();
 
       if (dashboardSheet) {
         var sourceDocumentVersion = sheetAvailableSource.getRange("E1").getValues();
@@ -551,7 +550,8 @@ function updateItemsList() {
       }
       // Go through the available sheet list
       for (var i = 0; i < availableRanges.length; i++) {
-        listOfSheetsToRemove.push(availableRanges[i]);
+        var nameOfBanner = availableRanges[i][0];
+        listOfSheetsToRemove.push(nameOfBanner);
       }
 
       var listOfSheetsToRemoveLength = listOfSheetsToRemove.length;
@@ -624,7 +624,7 @@ function updateItemsList() {
       
       var shouldShowSheet = true;
       if (settingsSheet) {
-        if (settingsSheet.getRange("B14").getValue()) {
+        if (settingsSheet.getRange(SETTINGS_FOR_OPTIONAL_SHEET[WISH_TALLY_EVENTS_SHEET_NAME]["setting_option"]).getValue()) {
         } else {
           shouldShowSheet = false;
         }
@@ -658,7 +658,7 @@ function updateItemsList() {
       // Show Results
       shouldShowSheet = true;
       if (settingsSheet) {
-        if (settingsSheet.getRange("B15").getValue()) {
+        if (settingsSheet.getRange(SETTINGS_FOR_OPTIONAL_SHEET[WISH_TALLY_RESULTS_SHEET_NAME]["setting_option"]).getValue()) {
         } else {
           shouldShowSheet = false;
         }
@@ -686,7 +686,7 @@ function updateItemsList() {
       // Show Constellation
       shouldShowSheet = true;
       if (settingsSheet) {
-        if (settingsSheet.getRange("B16").getValue()) {
+        if (settingsSheet.getRange(SETTINGS_FOR_OPTIONAL_SHEET[WISH_TALLY_CHARACTERS_SHEET_NAME]["setting_option"]).getValue()) {
         } else {
           shouldShowSheet = false;
         }
@@ -723,7 +723,7 @@ function updateItemsList() {
       // Show Weapons
       shouldShowSheet = true;
       if (settingsSheet) {
-        if (settingsSheet.getRange("B22").getValue()) {
+        if (settingsSheet.getRange(SETTINGS_FOR_OPTIONAL_SHEET[WISH_TALLY_WEAPONS_SHEET_NAME]["setting_option"]).getValue()) {
         } else {
           shouldShowSheet = false;
         }
@@ -758,33 +758,28 @@ function updateItemsList() {
         }
       }
       // Put available sheet into current
-      var skipRanges = sheetAvailableSource.getRange(2,2, sheetAvailableSource.getMaxRows()-1,1).getValues();
-      skipRanges = String(skipRanges).split(",");
-      var hiddenRanges = sheetAvailableSource.getRange(2,3, sheetAvailableSource.getMaxRows()-1,1).getValues();
-      hiddenRanges = String(hiddenRanges).split(",");
-      var settingsOptionRanges = sheetAvailableSource.getRange(2,4, sheetAvailableSource.getMaxRows()-1,1).getValues();
-      settingsOptionRanges = String(settingsOptionRanges).split(",");
-      
       for (var i = 0; i < availableRanges.length; i++) {
-        var nameOfBanner = availableRanges[i];
-        var isSkipString = skipRanges[i];
-        var isHiddenString = hiddenRanges[i];
-        var settingOptionString = settingsOptionRanges[i];
-        
+        var nameOfBanner = availableRanges[i][0];
+        var isSkipString = availableRanges[i][1];
+        var isHiddenString = availableRanges[i][2];
+        var settingRowOptionString = availableRanges[i][3];
+        var settingColumnOptionString = availableRanges[i][4];
+
         var sheetAvailableSelectionSource = sheetSource.getSheetByName(nameOfBanner);
         var storedSheet;
         if (isSkipString == "YES") {
           // skip - disabled by source
         } else {
           if (sheetAvailableSelectionSource) {
-            if (settingOptionString == "" || settingOptionString == 0) {
+            if (settingRowOptionString == "" || settingRowOptionString == 0) {
               //Enable without settings
               storedSheet = sheetAvailableSelectionSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName(nameOfBanner);
             } else {
               // Check current setting has row
-              if (settingOptionString <= settingsSheet.getMaxRows()) {
-                var checkEnabledRanges = settingsSheet.getRange(settingOptionString, 2).getValue();
-                if (checkEnabledRanges == "YES") {
+              if (settingRowOptionString <= settingsSheet.getMaxRows()) {
+                // For backwards compatibility pre v3.40 script, has only row number in column 'D'.
+                var checkEnabledRanges = settingsSheet.getRange(settingRowOptionString, settingColumnOptionString).getValue();
+                if (checkEnabledRanges == "YES" || checkEnabledRanges == "TRUE") {
                   storedSheet = sheetAvailableSelectionSource.copyTo(SpreadsheetApp.getActiveSpreadsheet()).setName(nameOfBanner);
                 } else {
                   storedSheet = null;
