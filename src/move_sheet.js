@@ -64,6 +64,16 @@ function moveToSheetByName(nameOfSheet) {
   if (sheet) {
     sheet.activate();
   } else {
+    var settingsForOptionalSheet = SETTINGS_FOR_OPTIONAL_SHEET[nameOfSheet];
+    if (settingsForOptionalSheet) {
+      var settingsSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_SETTINGS_SHEET_NAME);
+      if (settingsSheet) {
+        var settingOption = settingsForOptionalSheet["setting_option"];
+        if (!settingsSheet.getRange(settingOption).getValue()) {
+          displayUserAlert("Optional Sheet", nameOfSheet+" has been disabled within Settings, enable this sheet at cell '"+settingOption+"', and run 'Update Items'")
+        }
+      }
+    }
     title = "Error";
     message = "Unable to find sheet named '"+nameOfSheet+"'.";
     SpreadsheetApp.getActiveSpreadsheet().toast(message, title);

@@ -45,7 +45,7 @@ function displayUserAlert(titleAlert, messageAlert) {
   var result = ui.alert(
     titleAlert,
     messageAlert,
-    SpreadsheetApp.getUi().ButtonSet.OK_CANCEL);
+    SpreadsheetApp.getUi().ButtonSet.OK);
   return result;
 }
 
