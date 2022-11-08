@@ -1,9 +1,7 @@
 /*
- * Version 3.40 made by yippym - 2021-10-22 21:00
+ * Version 3.50 made by yippym - 2022-11-07 21:00
  * https://github.com/Yippy/wish-tally-sheet
  */
-
-
 function extractAuthKeyFromInput(userInput) {
   urlForAPI = userInput.toString().split("&");
   var foundAuth = "";

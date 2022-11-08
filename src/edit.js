@@ -1,3 +1,7 @@
+/*
+ * Version 3.50 made by yippym - 2022-11-07 21:00
+ * https://github.com/Yippy/wish-tally-sheet
+ */
 function onEdit(e) {
     const sheet = e.range.getSheet(); 
     if(sheet.getName() == WISH_TALLY_CHARACTERS_SHEET_NAME || sheet.getName() == WISH_TALLY_WEAPONS_SHEET_NAME) {
