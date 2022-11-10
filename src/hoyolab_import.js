@@ -324,6 +324,8 @@ function syncCollectionSettings(constellationsSheet, objects, sheetName) {
             var override = saveValues[0][0];
             if ((override + totalValue) < foundObject.refinement_level) {
               override = foundObject.refinement_level - totalValue;
+            } else {
+              override = 0;
             }
             saveValues[0] = [override];
             saveValues[1] = [foundObject.level];
