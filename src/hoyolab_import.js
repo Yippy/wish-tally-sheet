@@ -83,7 +83,7 @@ function importHoYoLabCharactersButtonScript() {
 }
 
 function displayHoYoLabLtuid() {
-  const result = displayUserPrompt("Import from HoYoLab", `Enter HoYoLAB UID (ltuid) to proceed.\n`,SpreadsheetApp.getUi().ButtonSet.YES_NO);
+  const result = displayUserPrompt("Import from HoYoLab", `Enter HoYoLAB UID (ltuid) to proceed.\n\nPress 'No' to stop.\nPress 'Cancel' to check tutorial.`,SpreadsheetApp.getUi().ButtonSet.YES_NO_CANCEL);
   var button = result.getSelectedButton();
   if (button == SpreadsheetApp.getUi().Button.YES) {
     var ltuidInput = result.getResponseText();
@@ -93,6 +93,8 @@ function displayHoYoLabLtuid() {
     } else {
       displayUserAlert("Import from HoYoLab", "HoYoLAB UID (ltuid) is invalid, you have entered '"+ltuidInput+"'.", SpreadsheetApp.getUi().ButtonSet.OK);
     }
+  } else if (button == SpreadsheetApp.getUi().Button.CANCEL) {
+    displayHoYoLab();
   }
 }
 
