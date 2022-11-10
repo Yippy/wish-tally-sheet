@@ -823,7 +823,7 @@ function updateItemsList() {
       settingsSheet.getRange("H6").setValue(new Date());
       
     } catch(e) {
-      var message = 'Unable to connect to source';
+      var message = 'Unable to complete "Update Items" due to '+e;
       var title = 'Error';
       SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
       updateItemHasFailed = true;
