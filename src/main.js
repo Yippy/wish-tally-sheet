@@ -499,6 +499,7 @@ function updateItemsList() {
   var settingsSheet = getSettingsSheet();
   var dashboardSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_DASHBOARD_SHEET_NAME);
   var updateItemHasFailed = false;
+  var errorMessage = "";
   if (dashboardSheet) {
     dashboardSheet.getRange(dashboardEditRange[0]).setValue("Update Items: Running script, please wait.");
     dashboardSheet.getRange(dashboardEditRange[0]).setFontColor("yellow").setFontWeight("bold");
@@ -806,7 +807,6 @@ function updateItemsList() {
           }
         }
       }
-      
       // Remove placeholder if available
       if(placeHolderSheet) {
         // If exist remove from spreadsheet
@@ -827,6 +827,7 @@ function updateItemsList() {
       var title = 'Error';
       SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
       updateItemHasFailed = true;
+      errorMessage = "\nError: "+e;
       settingsSheet.getRange(5, 7).setValue(false);
       settingsSheet.getRange("H6").setValue(new Date());
     }
@@ -835,13 +836,14 @@ function updateItemsList() {
     var title = 'Error';
     SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
     updateItemHasFailed = true;
+    errorMessage = "\n"+message;
     settingsSheet.getRange(5, 7).setValue(false);
     settingsSheet.getRange("H6").setValue(new Date());
   }
-  
+
   if (dashboardSheet) {
     if (updateItemHasFailed) {
-      dashboardSheet.getRange(dashboardEditRange[0]).setValue("Update Items: Update Items has failed, please try again.");
+      dashboardSheet.getRange(dashboardEditRange[0]).setValue("Update Items: Update Items has failed, please try again."+errorMessage);
       dashboardSheet.getRange(dashboardEditRange[0]).setFontColor("red").setFontWeight("bold");
     } else {
       dashboardSheet.getRange(dashboardEditRange[0]).setValue("Update Items: Successfully updated the Item list.");
