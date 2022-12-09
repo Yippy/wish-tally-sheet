@@ -1,11 +1,11 @@
 /*
- * Version 3.50 made by yippym - 2022-11-07 21:00
+ * Version 3.51 made by yippym - 2022-12-09 21:00
  * https://github.com/Yippy/wish-tally-sheet
  */
 // Wish Tally Const
 var WISH_TALLY_SHEET_SOURCE_REDIRECT_ID = '1Um4vaqyYDRXqpnB6vFcz92lvfW0VGIrevTH7eT8RTtg';
 var WISH_TALLY_SHEET_SUPPORTED_LOCALE = "en_GB";
-var WISH_TALLY_SHEET_SCRIPT_VERSION = 3.5;
+var WISH_TALLY_SHEET_SCRIPT_VERSION = 3.51;
 var WISH_TALLY_SHEET_SCRIPT_IS_ADD_ON = false;
 
 // Auto Import Const
@@ -31,7 +31,9 @@ var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
   "Korean": { "code": "ko", "full_code": "ko-kr", "4_star": " (★4)", "5_star": " (★5)", "gacha_type_400": "캐릭터 이벤트 기원-2", "gacha_type_301": "캐릭터 이벤트 기원", "gacha_type_302": "무기 이벤트 기원", "gacha_type_200": "상주 기원", "gacha_type_100": "초심자 기원" },
   "Portuguese": { "code": "pt", "full_code": "pt-pt", "4_star": " (4★)", "5_star": " (5★)", "gacha_type_400": "Oração de Evento de Personagem - 2", "gacha_type_301": "Oração de Evento de Personagem", "gacha_type_302": "Oração do Evento de Arma", "gacha_type_200": "Desejo Comum", "gacha_type_100": "Desejos de Novato" },
   "Thai": { "code": "th", "full_code": "th-th", "4_star": " (4 ดาว)", "5_star": " (5 ดาว)", "gacha_type_400": "กิจกรรมอธิษฐานตัวละคร - 2", "gacha_type_301": "กิจกรรมอธิษฐานตัวละคร", "gacha_type_302": "กิจกรรมอธิษฐานอาวุธ", "gacha_type_200": "อธิษฐานถาวร", "gacha_type_100": "ผู้เริ่มอธิษฐาน" },
-  "Russian": { "code": "ru", "full_code": "ru-ru", "4_star": " (4★)", "5_star": " (5★)", "gacha_type_400": "Молитва события персонажа II", "gacha_type_301": "Молитва события персонажа", "gacha_type_302": "Молитва события оружия", "gacha_type_200": "Стандартная молитва", "gacha_type_100": "Молитва новичка" }
+  "Russian": { "code": "ru", "full_code": "ru-ru", "4_star": " (4★)", "5_star": " (5★)", "gacha_type_400": "Молитва события персонажа II", "gacha_type_301": "Молитва события персонажа", "gacha_type_302": "Молитва события оружия", "gacha_type_200": "Стандартная молитва", "gacha_type_100": "Молитва новичка" },
+  "Italian": { "code": "it", "full_code": "it-it", "4_star": " (4 ★)", "5_star": " (5 ★)", "gacha_type_400": "Desiderio evento personaggio 2", "gacha_type_301": "Desiderio evento personaggio", "gacha_type_302": "Desiderio evento arma", "gacha_type_200": "Desiderio standard", "gacha_type_100": "Desideri per viaggiatori novizi" },
+  "Turkish": { "code": "tr", "full_code": "tr-tr", "4_star": " (4 Yıldızlı)", "5_star": " (5 Yıldızlı)", "gacha_type_400": "Karakter Etkinliği Dileği-2", "gacha_type_301": "Karakter Etkinliği Dileği", "gacha_type_302": "Silah Etkinliği Dileği", "gacha_type_200": "Kalıcı Dilek", "gacha_type_100": "Acemi Dilekleri" }
 };
 
 var AUTO_IMPORT_ADDITIONAL_QUERY = [
