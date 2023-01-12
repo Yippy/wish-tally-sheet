@@ -1,11 +1,11 @@
 /*
- * Version 3.51 made by yippym - 2022-12-09 21:00
+ * Version 3.60 made by yippym - 2023-01-12 01:00
  * https://github.com/Yippy/wish-tally-sheet
  */
 // Wish Tally Const
 var WISH_TALLY_SHEET_SOURCE_REDIRECT_ID = '1Um4vaqyYDRXqpnB6vFcz92lvfW0VGIrevTH7eT8RTtg';
 var WISH_TALLY_SHEET_SUPPORTED_LOCALE = "en_GB";
-var WISH_TALLY_SHEET_SCRIPT_VERSION = 3.51;
+var WISH_TALLY_SHEET_SCRIPT_VERSION = 3.60;
 var WISH_TALLY_SHEET_SCRIPT_IS_ADD_ON = false;
 
 // Auto Import Const

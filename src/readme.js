@@ -1,5 +1,5 @@
 /*
- * Version 3.51 made by yippym - 2022-12-09 21:00
+ * Version 3.60 made by yippym - 2023-01-12 01:00
  * https://github.com/Yippy/wish-tally-sheet
  */
 function displayModalDiagram(sheet, sheetName, titleRange, htmlRange, widthSizeRange, heightSizeRange) {
