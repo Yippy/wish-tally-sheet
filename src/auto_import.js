@@ -185,6 +185,7 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
   
   var checkPreviousDateAndTimeString = "";
   var checkPreviousDateAndTime;
+  var checkOneSecondOffDateAndTime;
   var overrideIndex = 0;
   var textWish;
   var oldTextWish;
@@ -219,6 +220,17 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
 
           var dateAndTimeStringModified = dateAndTimeString.split(" ").join("T");
           var wishDateAndTime = new Date(dateAndTimeStringModified+".000Z");
+
+          if (overrideIndex == 0 && checkPreviousDateAndTime) {
+            /* Check one second difference from previous single wish */
+            checkOneSecondOffDateAndTime = new Date(checkPreviousDateAndTime.valueOf());
+            checkOneSecondOffDateAndTime.setSeconds(checkOneSecondOffDateAndTime.getSeconds()-1);
+            if (checkOneSecondOffDateAndTime.valueOf() == wishDateAndTime.valueOf()) {
+              // Due to wish date and time is only second difference, it's therefore a multi. Override previous wish to match.
+              checkPreviousDateAndTimeString = dateAndTimeString;
+              checkPreviousDateAndTime = new Date(wishDateAndTime.valueOf());
+            }
+          }
           if (checkPreviousDateAndTimeString === dateAndTimeString) {
             // Found matching date and time to previous wish
             if (overrideIndex == 0) {
