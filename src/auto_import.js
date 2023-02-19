@@ -226,9 +226,18 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
             checkOneSecondOffDateAndTime = new Date(checkPreviousDateAndTime.valueOf());
             checkOneSecondOffDateAndTime.setSeconds(checkOneSecondOffDateAndTime.getSeconds()-1);
             if (checkOneSecondOffDateAndTime.valueOf() == wishDateAndTime.valueOf()) {
-              // Due to wish date and time is only second difference, it's therefore a multi. Override previous wish to match.
-              checkPreviousDateAndTimeString = dateAndTimeString;
-              checkPreviousDateAndTime = new Date(wishDateAndTime.valueOf());
+              var nextWishIndex = i+1;
+              if (nextWishIndex < listOfWishesLength) {
+                var nextWish = listOfWishes[nextWishIndex];
+                var nextDateAndTimeString = nextWish['time'];
+                var nextDateAndTimeStringModified = nextDateAndTimeString.split(" ").join("T");
+                var nextWishDateAndTime = new Date(nextDateAndTimeStringModified+".000Z");
+                if (checkOneSecondOffDateAndTime.valueOf() == nextWishDateAndTime.valueOf()) {
+                  // Due to wish date and time is only second difference, it's therefore a multi. Override previous wish to match.
+                  checkPreviousDateAndTimeString = dateAndTimeString;
+                  checkPreviousDateAndTime = new Date(wishDateAndTime.valueOf());
+                }
+              }
             }
           }
           if (checkPreviousDateAndTimeString === dateAndTimeString) {
