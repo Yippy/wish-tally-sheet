@@ -25,10 +25,10 @@ function onOpen(e) {
 }
 
 function generateInitialiseToolbar() {
-  var ui = SpreadsheetApp.getUi();
-  ui.createMenu('Wish Tally')
-  .addItem('Initialise', 'updateItemsList')
-  .addToUi();
+  var menu = WISH_TALLY_SHEET_SCRIPT_IS_ADD_ON ? SpreadsheetApp.getUi().createAddonMenu() : SpreadsheetApp.getUi().createMenu(WISH_TALLY_SHEET_TOOLBAR_NAME);
+  menu
+    .addItem('Initialise', 'updateItemsList')
+    .addToUi();
 }
 
 function displayUserPrompt(titlePrompt, messagePrompt, buttonSet) {
@@ -61,8 +61,9 @@ function checkLocaleIsSetCorrectly() {
 }
 
 function getDefaultMenu() {
+  var menu = WISH_TALLY_SHEET_SCRIPT_IS_ADD_ON ? SpreadsheetApp.getUi().createAddonMenu() : SpreadsheetApp.getUi().createMenu(WISH_TALLY_SHEET_TOOLBAR_NAME);
   var ui = SpreadsheetApp.getUi();
-  ui.createMenu('Wish Tally')
+  menu
   .addSeparator()
   .addSubMenu(ui.createMenu('Character Event Wish History')
             .addItem('Sort Range', 'sortCharacterEventWishHistory')

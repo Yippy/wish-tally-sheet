@@ -43,23 +43,23 @@ function testAuthKeyInputValidity(userInput) {
   return false;
 }
 
-
-const CACHED_AUTHKEY_PROPERTY = "cachedAuthKey_" + SpreadsheetApp.getActiveSpreadsheet().getId();
-// shape: {userInput: string, timeOfInput: Date}
+function getCachedAuthKeyProperty() {
+  return  "cachedAuthKey_" + SpreadsheetApp.getActiveSpreadsheet().getId();
+}
 
 function invalidateCachedAuthKey() {
   const userProperties = PropertiesService.getUserProperties();
-  userProperties.deleteProperty(CACHED_AUTHKEY_PROPERTY);
+  userProperties.deleteProperty(getCachedAuthKeyProperty());
 }
 
 function setCachedAuthKeyInput(userInput) {
   const userProperties = PropertiesService.getUserProperties();
-  userProperties.setProperty(CACHED_AUTHKEY_PROPERTY, JSON.stringify({ userInput, timeOfInput: new Date() }));
+  userProperties.setProperty(getCachedAuthKeyProperty(), JSON.stringify({ userInput, timeOfInput: new Date() }));
 }
 
 function getCachedAuthKeyInput() {
   const userProperties = PropertiesService.getUserProperties();
-  const cachedAuthKey = JSON.parse(userProperties.getProperty(CACHED_AUTHKEY_PROPERTY));
+  const cachedAuthKey = JSON.parse(userProperties.getProperty(getCachedAuthKeyProperty()));
 
   if (cachedAuthKey == null) {
     return null;
