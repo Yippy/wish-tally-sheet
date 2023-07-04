@@ -12,11 +12,24 @@ var WISH_TALLY_SHEET_SCRIPT_IS_ADD_ON = false;
 // Auto Import Const
 /* Add URL here to avoid showing on Sheet */
 var AUTO_IMPORT_URL_FOR_API_BYPASS = ""; // Optional
+
+class BannerSettings {
+  constructor(range_status, is_toggled_cell, gacha_type) {
+    this.range_status = range_status;
+    this.is_toggled_cell = is_toggled_cell;
+    this.gacha_type = gacha_type;
+  }
+
+  is_toggled(settingsSheet) {
+    return settingsSheet.getRange(this.is_toggled_cell).getValue();
+  }
+}
+
 var AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT = {
-  "Character Event Wish History": { "range_status": "E44", "range_toggle": "E37", "gacha_type": 301 },
-  "Permanent Wish History": { "range_status": "E45", "range_toggle": "E38", "gacha_type": 200 },
-  "Weapon Event Wish History": { "range_status": "E46", "range_toggle": "E39", "gacha_type": 302 },
-  "Novice Wish History": { "range_status": "E47", "range_toggle": "E40", "gacha_type": 100 },
+  "Character Event Wish History": new BannerSettings("E44", "E37", 301),
+  "Permanent Wish History": new BannerSettings("E45", "E38", 200),
+  "Weapon Event Wish History": new BannerSettings("E46", "E39", 302),
+  "Novice Wish History": new BannerSettings("E47", "E40", 100)
 };
 
 var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {

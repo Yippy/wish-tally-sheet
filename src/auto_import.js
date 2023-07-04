@@ -26,7 +26,7 @@ function testAuthKeyInputValidity(userInput) {
   const USING_BANNER = "Permanent Wish History";
 
   var settingsSheet = getSettingsSheet();
-  var queryBannerCode = AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT[USING_BANNER]["gacha_type"];
+  var queryBannerCode = AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT[USING_BANNER].gacha_type;
   var selectedServer = settingsSheet.getRange("B3").getValue();
   var languageSettings = AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT[settingsSheet.getRange("B2").getValue()];
   if (languageSettings == null) {
@@ -101,7 +101,7 @@ function importFromAPI(urlForAPI) {
     for (var i = 0; i < WISH_TALLY_NAME_OF_WISH_HISTORY.length; i++) {
       bannerName = WISH_TALLY_NAME_OF_WISH_HISTORY[i];
       bannerSettings = AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT[bannerName];
-      settingsSheet.getRange(bannerSettings['range_status']).setValue("No auth key");
+      settingsSheet.getRange(bannerSettings.range_status).setValue("No auth key");
     }
   } else {
     var selectedLanguageCode = settingsSheet.getRange("B2").getValue();
@@ -123,25 +123,25 @@ function importFromAPI(urlForAPI) {
     for (var i = 0; i < WISH_TALLY_NAME_OF_WISH_HISTORY.length; i++) {
       bannerName = WISH_TALLY_NAME_OF_WISH_HISTORY[i];
       bannerSettings = AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT[bannerName];
-      settingsSheet.getRange(bannerSettings['range_status']).setValue("");
+      settingsSheet.getRange(bannerSettings.range_status).setValue("");
     }
     for (var i = 0; i < WISH_TALLY_NAME_OF_WISH_HISTORY.length; i++) {
       if (errorCodeNotEncountered) {
         bannerName = WISH_TALLY_NAME_OF_WISH_HISTORY[i];
         bannerSettings = AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT[bannerName];
-        var isToggled = settingsSheet.getRange(bannerSettings['range_toggle']).getValue();
+        var isToggled = bannerSettings.is_toggled(settingsSheet);
         if (isToggled == true) {
           bannerSheet = SpreadsheetApp.getActive().getSheetByName(bannerName);
           if (bannerSheet) {
             checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, languageSettings, settingsSheet);
           } else {
-            settingsSheet.getRange(bannerSettings['range_status']).setValue("Missing sheet");
+            settingsSheet.getRange(bannerSettings.range_status).setValue("Missing sheet");
           }
         } else {
-          settingsSheet.getRange(bannerSettings['range_status']).setValue("Skipped");
+          settingsSheet.getRange(bannerSettings.range_status).setValue("Skipped");
         }
       } else {
-        settingsSheet.getRange(bannerSettings['range_status']).setValue("Stopped Due to Error:\n"+settingsSheet.getRange(bannerSettings['range_status']).getValue());
+        settingsSheet.getRange(bannerSettings.range_status).setValue("Stopped Due to Error:\n"+settingsSheet.getRange(bannerSettings.range_status).getValue());
         break;
       }
     }
@@ -150,7 +150,7 @@ function importFromAPI(urlForAPI) {
 }
 
 function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, languageSettings, settingsSheet) {
-  settingsSheet.getRange(bannerSettings['range_status']).setValue("Starting");
+  settingsSheet.getRange(bannerSettings.range_status).setValue("Starting");
   /* Get latest wish from banner */
   var iLastRow = bannerSheet.getRange(2, 5, bannerSheet.getLastRow(), 1).getValues().filter(String).length;
   var wishTextString;
@@ -161,22 +161,22 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
     lastWishDateAndTimeString = bannerSheet.getRange("E" + iLastRow).getValue();
     wishTextString = bannerSheet.getRange("A" + iLastRow).getValue();
     if (lastWishDateAndTimeString) {
-      settingsSheet.getRange(bannerSettings['range_status']).setValue("Last wish: "+lastWishDateAndTimeString);
+      settingsSheet.getRange(bannerSettings.range_status).setValue("Last wish: "+lastWishDateAndTimeString);
       lastWishDateAndTimeString = lastWishDateAndTimeString.split(" ").join("T");
       lastWishDateAndTime = new Date(lastWishDateAndTimeString+".000Z");
     } else {
       iLastRow = 1;
-      settingsSheet.getRange(bannerSettings['range_status']).setValue("No previous wishes");
+      settingsSheet.getRange(bannerSettings.range_status).setValue("No previous wishes");
     }
     iLastRow++; // Move last row to new row
   } else {
     iLastRow = 2; // Move last row to new row
-    settingsSheet.getRange(bannerSettings['range_status']).setValue("");
+    settingsSheet.getRange(bannerSettings.range_status).setValue("");
   }
   
   var extractWishes = [];
   var page = 1;
-  var queryBannerCode = bannerSettings["gacha_type"];
+  var queryBannerCode = bannerSettings.gacha_type;
   var numberOfWishPerPage = 6;
   var urlForBanner = urlForWishHistory+"&gacha_type="+queryBannerCode+"&size="+numberOfWishPerPage;
   var failed = 0;
@@ -190,7 +190,7 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
   var textWish;
   var oldTextWish;
   while (!is_done) {
-    settingsSheet.getRange(bannerSettings['range_status']).setValue("Loading page: "+page);
+    settingsSheet.getRange(bannerSettings.range_status).setValue("Loading page: "+page);
     var response = UrlFetchApp.fetch(urlForBanner+"&page="+page+"&end_id="+end_id);
     var jsonResponse = response.getContentText();
     var jsonDict = JSON.parse(jsonResponse);
@@ -253,7 +253,7 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
             if (overrideIndex == 1) {
               errorCodeNotEncountered = false;
               is_done = true;
-              settingsSheet.getRange(bannerSettings['range_status']).setValue("Error: Multi wish contains 11 within same date and time:"+dateAndTimeString+", found so far: "+extractWishes.length);
+              settingsSheet.getRange(bannerSettings.range_status).setValue("Error: Multi wish contains 11 within same date and time:"+dateAndTimeString+", found so far: "+extractWishes.length);
               break;
             } else {
               overrideIndex--;
@@ -268,7 +268,7 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
               } else {
                 errorCodeNotEncountered = false;
                 is_done = true;
-                settingsSheet.getRange(bannerSettings['range_status']).setValue("Error: Multi wish is incomplete with override "+overrideIndex+"@"+dateAndTimeString+", found so far: "+extractWishes.length);
+                settingsSheet.getRange(bannerSettings.range_status).setValue("Error: Multi wish is incomplete with override "+overrideIndex+"@"+dateAndTimeString+", found so far: "+extractWishes.length);
                 break;
               }
             } else {
@@ -303,19 +303,19 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
       if (AUTO_IMPORT_URL_ERROR_CODE_AUTHKEY_DENIED == jsonDict["retcode"]) {
         errorCodeNotEncountered = false;
         is_done = true;
-        settingsSheet.getRange(bannerSettings['range_status']).setValue("feedback URL\nNo Longer Works");
+        settingsSheet.getRange(bannerSettings.range_status).setValue("feedback URL\nNo Longer Works");
       } else if (AUTO_IMPORT_URL_ERROR_CODE_AUTH_TIMEOUT == jsonDict["retcode"]) {
         errorCodeNotEncountered = false;
         is_done = true;
-        settingsSheet.getRange(bannerSettings['range_status']).setValue("auth timeout");
+        settingsSheet.getRange(bannerSettings.range_status).setValue("auth timeout");
       } else if (AUTO_IMPORT_URL_ERROR_CODE_AUTH_INVALID == jsonDict["retcode"]) {
         errorCodeNotEncountered = false;
         is_done = true;
-        settingsSheet.getRange(bannerSettings['range_status']).setValue("auth invalid");
+        settingsSheet.getRange(bannerSettings.range_status).setValue("auth invalid");
       } else if (AUTO_IMPORT_URL_ERROR_CODE_REQUEST_PARAMS == jsonDict["retcode"]) {
         errorCodeNotEncountered = false;
         is_done = true;
-        settingsSheet.getRange(bannerSettings['range_status']).setValue("Change server setting");
+        settingsSheet.getRange(bannerSettings.range_status).setValue("Change server setting");
       }
 
       failed++;
@@ -325,7 +325,7 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
     }
   }
   if (failed > 2){
-    settingsSheet.getRange(bannerSettings['range_status']).setValue("Failed too many times");
+    settingsSheet.getRange(bannerSettings.range_status).setValue("Failed too many times");
   } else {
     if (errorCodeNotEncountered) {
       if (extractWishes.length > 0) {
@@ -353,9 +353,9 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
           extractWishes.reverse();
           bannerSheet.getRange(iLastRow, 1, extractWishes.length, 2).setValues(extractWishes);
         }
-        settingsSheet.getRange(bannerSettings['range_status']).setValue(outputString);
+        settingsSheet.getRange(bannerSettings.range_status).setValue(outputString);
       } else {
-        settingsSheet.getRange(bannerSettings['range_status']).setValue("Nothing to add");
+        settingsSheet.getRange(bannerSettings.range_status).setValue("Nothing to add");
       }
     }
   }
