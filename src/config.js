@@ -14,10 +14,18 @@ var WISH_TALLY_SHEET_SCRIPT_IS_ADD_ON = false;
 var AUTO_IMPORT_URL_FOR_API_BYPASS = ""; // Optional
 
 class BannerSettings {
-  constructor(range_status, is_toggled_cell, gacha_type) {
-    this.range_status = range_status;
+  constructor(range_status_cell, is_toggled_cell, gacha_type) {
+    this.range_status_cell = range_status_cell;
     this.is_toggled_cell = is_toggled_cell;
     this.gacha_type = gacha_type;
+  }
+
+  range_status(settingsSheet) {
+    return settingsSheet.getRange(this.range_status_cell).getValue();
+  }
+
+  set_range_status(value, settingsSheet) {
+    return settingsSheet.getRange(this.range_status_cell).setValue(value);
   }
 
   is_toggled(settingsSheet) {
