@@ -33,10 +33,8 @@ function testAuthKeyInputValidity(userInput) {
     // Get default language
     languageSettings = AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT["English"];
   }
-  var urlForWishHistory = selectedServer == "China" ? AUTO_IMPORT_URL_CHINA : AUTO_IMPORT_URL;
-  urlForWishHistory += "?" + AUTO_IMPORT_ADDITIONAL_QUERY.join("&") + "&authkey=" + authKey + "&lang=" + languageSettings['code'] + "&gacha_type=" + queryBannerCode;
-
-  responseJson = JSON.parse(UrlFetchApp.fetch(urlForWishHistory).getContentText());
+  var url = getWishHistoryUrl(selectedServer, queryBannerCode, languageSettings, 1, authKey);
+  responseJson = JSON.parse(UrlFetchApp.fetch(url).getContentText());
   if (responseJson.retcode === 0) {
     return true;
   }
@@ -92,11 +90,11 @@ function importFromAPI(urlForAPI) {
   if (AUTO_IMPORT_URL_FOR_API_BYPASS != "") {
     urlForAPI = AUTO_IMPORT_URL_FOR_API_BYPASS;
   }
-  var foundAuth = extractAuthKeyFromInput(urlForAPI);
+  var authKey = extractAuthKeyFromInput(urlForAPI);
   var bannerName;
   var bannerSheet;
   var bannerSettings;
-  if (foundAuth == "") {
+  if (authKey == "") {
     // Display auth key not available
     for (var i = 0; i < WISH_TALLY_NAME_OF_WISH_HISTORY.length; i++) {
       bannerName = WISH_TALLY_NAME_OF_WISH_HISTORY[i];
@@ -111,13 +109,6 @@ function importFromAPI(urlForAPI) {
       // Get default language
       languageSettings = AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT["English"];
     }
-    var urlForWishHistory;
-    if (selectedServer == "China") {
-      urlForWishHistory = AUTO_IMPORT_URL_CHINA;
-    } else {
-      urlForWishHistory = AUTO_IMPORT_URL;
-    }
-    urlForWishHistory += "?"+AUTO_IMPORT_ADDITIONAL_QUERY.join("&")+"&authkey="+foundAuth+"&lang="+languageSettings['code'];
     errorCodeNotEncountered = true;
     // Clear status
     for (var i = 0; i < WISH_TALLY_NAME_OF_WISH_HISTORY.length; i++) {
@@ -135,11 +126,17 @@ function importFromAPI(urlForAPI) {
 
       bannerName = WISH_TALLY_NAME_OF_WISH_HISTORY[i];
       bannerSettings = AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT[bannerName];
-      var isToggled = bannerSettings.is_toggled(settingsSheet);
-      if (isToggled == true) {
+      if (bannerSettings.is_toggled(settingsSheet)) {
         bannerSheet = SpreadsheetApp.getActive().getSheetByName(bannerName);
         if (bannerSheet) {
-          checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, languageSettings, settingsSheet);
+          checkPages(
+            bannerSheet,
+            bannerName,
+            bannerSettings,
+            languageSettings,
+            selectedServer,
+            settingsSheet,
+            authKey);
         } else {
           bannerSettings.set_range_status("Missing sheet", settingsSheet);
         }
@@ -151,7 +148,7 @@ function importFromAPI(urlForAPI) {
   settingsSheet.getRange("E43").setValue(new Date());
 }
 
-function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, languageSettings, settingsSheet) {
+function checkPages(bannerSheet, bannerName, bannerSettings, languageSettings, selectedServer, settingsSheet, authKey) {
   bannerSettings.set_range_status("Starting", settingsSheet);
   /* Get latest wish from banner */
   var iLastRow = bannerSheet.getRange(2, 5, bannerSheet.getLastRow(), 1).getValues().filter(String).length;
@@ -180,7 +177,12 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
   var page = 1;
   var queryBannerCode = bannerSettings.gacha_type;
   var numberOfWishPerPage = 6;
-  var urlForBanner = `${urlForWishHistory}&gacha_type=${queryBannerCode}&size=${numberOfWishPerPage}`;
+  var urlForBanner = getWishHistoryUrl(
+    selectedServer,
+    queryBannerCode,
+    languageSettings,
+    numberOfWishPerPage,
+    authKey);
   var failed = 0;
   var is_done = false;
   var end_id = 0;
@@ -365,4 +367,13 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
       }
     }
   }
+
+function getWishHistoryUrl(selectedServer, queryBannerCode, languageSettings, numberOfWishPerPage, authKey) {
+    var base_url;
+    if (selectedServer == "China") {
+      base_url = AUTO_IMPORT_URL_CHINA;
+    } else {
+      base_url = AUTO_IMPORT_URL;
+    }
+    return `${base_url}?${AUTO_IMPORT_ADDITIONAL_QUERY.join("&")}&authkey=${authKey}&lang=${languageSettings['code']}&gacha_type=${queryBannerCode}&size=${numberOfWishPerPage}`;
 }
