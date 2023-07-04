@@ -126,23 +126,25 @@ function importFromAPI(urlForAPI) {
       bannerSettings.set_range_status("", settingsSheet);
     }
     for (var i = 0; i < WISH_TALLY_NAME_OF_WISH_HISTORY.length; i++) {
-      if (errorCodeNotEncountered) {
-        bannerName = WISH_TALLY_NAME_OF_WISH_HISTORY[i];
-        bannerSettings = AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT[bannerName];
-        var isToggled = bannerSettings.is_toggled(settingsSheet);
-        if (isToggled == true) {
-          bannerSheet = SpreadsheetApp.getActive().getSheetByName(bannerName);
-          if (bannerSheet) {
-            checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, languageSettings, settingsSheet);
-          } else {
-            bannerSettings.set_range_status("Missing sheet", settingsSheet);
-          }
+      if (!errorCodeNotEncountered) {
+        bannerSettings.set_range_status(
+          "Stopped Due to Error:\n" + bannerSettings.range_status(settingsSheet),
+          settingsSheet);
+        break;
+      }
+
+      bannerName = WISH_TALLY_NAME_OF_WISH_HISTORY[i];
+      bannerSettings = AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT[bannerName];
+      var isToggled = bannerSettings.is_toggled(settingsSheet);
+      if (isToggled == true) {
+        bannerSheet = SpreadsheetApp.getActive().getSheetByName(bannerName);
+        if (bannerSheet) {
+          checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, languageSettings, settingsSheet);
         } else {
-          bannerSettings.set_range_status("Skipped", settingsSheet);
+          bannerSettings.set_range_status("Missing sheet", settingsSheet);
         }
       } else {
-        bannerSettings.set_range_status("Stopped Due to Error:\n"+bannerSettings.range_status(settingsSheet), settingsSheet);
-        break;
+        bannerSettings.set_range_status("Skipped", settingsSheet);
       }
     }
   }
