@@ -311,24 +311,29 @@ function checkPages(bannerSheet, bannerName, bannerSettings, languageSettings, s
       var title ="Error code: "+return_code;
       SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
 
-      if (AUTO_IMPORT_URL_ERROR_CODE_AUTHKEY_DENIED == return_code) {
-        errorCodeNotEncountered = false;
-        is_done = true;
-        bannerSettings.set_range_status("feedback URL\nNo Longer Works", settingsSheet);
-      } else if (AUTO_IMPORT_URL_ERROR_CODE_AUTH_TIMEOUT == return_code) {
-        errorCodeNotEncountered = false;
-        is_done = true;
-        bannerSettings.set_range_status("auth timeout", settingsSheet);
-      } else if (AUTO_IMPORT_URL_ERROR_CODE_AUTH_INVALID == return_code) {
-        errorCodeNotEncountered = false;
-        is_done = true;
-        bannerSettings.set_range_status("auth invalid", settingsSheet);
-      } else if (AUTO_IMPORT_URL_ERROR_CODE_REQUEST_PARAMS == return_code) {
-        errorCodeNotEncountered = false;
-        is_done = true;
-        bannerSettings.set_range_status("Change server setting", settingsSheet);
-      } else {
-        bannerSettings.set_range_status(`Unknown return code: ${return_code}`, settingsSheet);
+      switch (return_code) {
+        case AUTO_IMPORT_URL_ERROR_CODE_AUTHKEY_DENIED:
+          errorCodeNotEncountered = false;
+          is_done = true;
+          bannerSettings.set_range_status("feedback URL\nNo Longer Works", settingsSheet);
+          break;
+        case AUTO_IMPORT_URL_ERROR_CODE_AUTH_TIMEOUT:
+          errorCodeNotEncountered = false;
+          is_done = true;
+          bannerSettings.set_range_status("auth timeout", settingsSheet);
+          break;
+        case AUTO_IMPORT_URL_ERROR_CODE_AUTH_INVALID:
+          errorCodeNotEncountered = false;
+          is_done = true;
+          bannerSettings.set_range_status("auth invalid", settingsSheet);
+          break;
+        case AUTO_IMPORT_URL_ERROR_CODE_REQUEST_PARAMS:
+          errorCodeNotEncountered = false;
+          is_done = true;
+          bannerSettings.set_range_status("Change server setting", settingsSheet);
+          break;
+        default:
+          bannerSettings.set_range_status(`Unknown return code: ${return_code}`, settingsSheet);
       }
 
       failed++;
