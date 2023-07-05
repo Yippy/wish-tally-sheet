@@ -333,43 +333,41 @@ function checkPages(bannerSheet, bannerName, bannerSettings, languageSettings, s
 
       failed++;
       if (failed > 2){
-        is_done = true;
+        bannerSettings.set_range_status("Failed too many times", bannerSettings, settingsSheet);
+        return;
       }
     }
   }
-  if (failed > 2){
-    bannerSettings.set_range_status("Failed too many times", settingsSheet);
-  } else {
-    if (errorCodeNotEncountered) {
-      if (extractWishes.length > 0) {
-        var now = new Date();
-        var sixMonthBeforeNow = new Date(now.valueOf());
-        sixMonthBeforeNow.setMonth(now.getMonth() - 6);
-        var isValid = true;
-        var outputString = "Found: "+extractWishes.length;
-        if (!lastWishDateAndTime) {
-          // fresh history sheet no last date to check
-          outputString += ", with wish history being empty"
-        } else if (lastWishDateAndTime < sixMonthBeforeNow) {
-          // Check if last wish found is more than 6 months, no further validation
-          outputString += ", last wish saved was 6 months ago, maybe missing wishes inbetween"
-        } else {
-          if (wishTextString !== textWish) {
-            if (wishTextString !== oldTextWish) {
-              // API didn't reach to your last wish stored on the sheet, meaning the API is incomplete
-              isValid = false;
-              outputString = "Error your recently found wishes did not reach to your last wish, found: "+extractWishes.length+", please try again miHoYo may have sent incomplete wish data.";
-            }
+
+  if (errorCodeNotEncountered) {
+    if (extractWishes.length > 0) {
+      var now = new Date();
+      var sixMonthBeforeNow = new Date(now.valueOf());
+      sixMonthBeforeNow.setMonth(now.getMonth() - 6);
+      var isValid = true;
+      var outputString = "Found: "+extractWishes.length;
+      if (!lastWishDateAndTime) {
+        // fresh history sheet no last date to check
+        outputString += ", with wish history being empty"
+      } else if (lastWishDateAndTime < sixMonthBeforeNow) {
+        // Check if last wish found is more than 6 months, no further validation
+        outputString += ", last wish saved was 6 months ago, maybe missing wishes inbetween"
+      } else {
+        if (wishTextString !== textWish) {
+          if (wishTextString !== oldTextWish) {
+            // API didn't reach to your last wish stored on the sheet, meaning the API is incomplete
+            isValid = false;
+            outputString = "Error your recently found wishes did not reach to your last wish, found: "+extractWishes.length+", please try again miHoYo may have sent incomplete wish data.";
           }
         }
-        if (isValid) {
-          extractWishes.reverse();
-          bannerSheet.getRange(iLastRow, 1, extractWishes.length, 2).setValues(extractWishes);
-        }
-        bannerSettings.set_range_status(outputString, settingsSheet);
-      } else {
-        bannerSettings.set_range_status("Nothing to add", settingsSheet);
       }
+      if (isValid) {
+        extractWishes.reverse();
+        bannerSheet.getRange(iLastRow, 1, extractWishes.length, 2).setValues(extractWishes);
+      }
+      bannerSettings.set_range_status(outputString, settingsSheet);
+    } else {
+      bannerSettings.set_range_status("Nothing to add", settingsSheet);
     }
   }
 }
