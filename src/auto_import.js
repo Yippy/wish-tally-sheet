@@ -327,6 +327,8 @@ function checkPages(bannerSheet, bannerName, bannerSettings, languageSettings, s
         errorCodeNotEncountered = false;
         is_done = true;
         bannerSettings.set_range_status("Change server setting", settingsSheet);
+      } else {
+        bannerSettings.set_range_status(`Unknown return code: ${return_code}`, settingsSheet);
       }
 
       failed++;
