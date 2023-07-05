@@ -306,21 +306,24 @@ function checkPages(bannerSheet, bannerName, bannerSettings, languageSettings, s
       }
     } else {
       var message = jsonDict["message"];
-      var title ="Error code: "+jsonDict["retcode"];
+      var return_code = jsonDict["retcode"];
+
+      var title ="Error code: "+return_code;
       SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
-      if (AUTO_IMPORT_URL_ERROR_CODE_AUTHKEY_DENIED == jsonDict["retcode"]) {
+
+      if (AUTO_IMPORT_URL_ERROR_CODE_AUTHKEY_DENIED == return_code) {
         errorCodeNotEncountered = false;
         is_done = true;
         bannerSettings.set_range_status("feedback URL\nNo Longer Works", settingsSheet);
-      } else if (AUTO_IMPORT_URL_ERROR_CODE_AUTH_TIMEOUT == jsonDict["retcode"]) {
+      } else if (AUTO_IMPORT_URL_ERROR_CODE_AUTH_TIMEOUT == return_code) {
         errorCodeNotEncountered = false;
         is_done = true;
         bannerSettings.set_range_status("auth timeout", settingsSheet);
-      } else if (AUTO_IMPORT_URL_ERROR_CODE_AUTH_INVALID == jsonDict["retcode"]) {
+      } else if (AUTO_IMPORT_URL_ERROR_CODE_AUTH_INVALID == return_code) {
         errorCodeNotEncountered = false;
         is_done = true;
         bannerSettings.set_range_status("auth invalid", settingsSheet);
-      } else if (AUTO_IMPORT_URL_ERROR_CODE_REQUEST_PARAMS == jsonDict["retcode"]) {
+      } else if (AUTO_IMPORT_URL_ERROR_CODE_REQUEST_PARAMS == return_code) {
         errorCodeNotEncountered = false;
         is_done = true;
         bannerSettings.set_range_status("Change server setting", settingsSheet);
@@ -367,6 +370,7 @@ function checkPages(bannerSheet, bannerName, bannerSettings, languageSettings, s
       }
     }
   }
+}
 
 function getWishHistoryUrl(selectedServer, queryBannerCode, languageSettings, numberOfWishPerPage, authKey) {
     var base_url;
