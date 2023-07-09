@@ -118,7 +118,7 @@ function importFromAPI(urlForAPI) {
       if (bannerSettings.is_toggled(settingsSheet)) {
         bannerSheet = SpreadsheetApp.getActive().getSheetByName(bannerName);
         if (bannerSheet) {
-          var encounteredErrorCode = checkPages(
+          var success = checkPages(
             bannerSheet,
             bannerName,
             bannerSettings,
@@ -126,7 +126,7 @@ function importFromAPI(urlForAPI) {
             selectedServer,
             settingsSheet,
             authKey);
-          if (encounteredErrorCode) {
+          if (!success) {
             bannerSettings.set_range_status(
               "Stopped Due to Error:\n" + bannerSettings.range_status(settingsSheet),
               settingsSheet);
@@ -253,7 +253,7 @@ function checkPages(bannerSheet, bannerName, bannerSettings, languageSettings, s
               bannerSettings.set_range_status(
                 `Error: Multi wish contains 11 within same date and time: ${dateAndTimeString}, found so far: ${extractWishes.length}`,
                 settingsSheet);
-              return true;
+              return false;
             } else {
               overrideIndex--;
             }
@@ -268,7 +268,7 @@ function checkPages(bannerSheet, bannerName, bannerSettings, languageSettings, s
                 bannerSettings.set_range_status(
                   `Error: Multi wish is incomplete with override ${overrideIndex}@${dateAndTimeString}, found so far: ${extractWishes.length}`,
                   settingsSheet);
-                return true;
+                return false;
               }
             } else {
               // Default value for single wishes
@@ -305,16 +305,16 @@ function checkPages(bannerSheet, bannerName, bannerSettings, languageSettings, s
       switch (return_code) {
         case AUTO_IMPORT_URL_ERROR_CODE_AUTHKEY_DENIED:
           bannerSettings.set_range_status("feedback URL\nNo Longer Works", settingsSheet);
-          return true;
+          return false;
         case AUTO_IMPORT_URL_ERROR_CODE_AUTH_TIMEOUT:
           bannerSettings.set_range_status("auth timeout", settingsSheet);
-          return true;
+          return false;
         case AUTO_IMPORT_URL_ERROR_CODE_AUTH_INVALID:
           bannerSettings.set_range_status("auth invalid", settingsSheet);
-          return true;
+          return false;
         case AUTO_IMPORT_URL_ERROR_CODE_REQUEST_PARAMS:
           bannerSettings.set_range_status("Change server setting", settingsSheet);
-          return true;
+          return false;
         default:
           bannerSettings.set_range_status(`Unknown return code: ${return_code}`, settingsSheet);
           failed++;
@@ -322,7 +322,7 @@ function checkPages(bannerSheet, bannerName, bannerSettings, languageSettings, s
             bannerSettings.set_range_status("Failed too many times", bannerSettings, settingsSheet);
             // Preserve legacy behavior which did not treat this the same as other error code
             // cases
-            return false;
+            return true;
           }
       }
     }
@@ -358,7 +358,7 @@ function checkPages(bannerSheet, bannerName, bannerSettings, languageSettings, s
     bannerSettings.set_range_status("Nothing to add", settingsSheet);
   }
 
-  return false;
+  return true;
 }
 
 function getWishHistoryUrl(selectedServer, queryBannerCode, languageSettings, numberOfWishPerPage, authKey) {
