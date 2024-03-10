@@ -12,29 +12,200 @@ var WISH_TALLY_SHEET_SCRIPT_IS_ADD_ON = false;
 // Auto Import Const
 /* Add URL here to avoid showing on Sheet */
 var AUTO_IMPORT_URL_FOR_API_BYPASS = ""; // Optional
+
+class BannerSettings {
+  constructor(range_status_cell, is_toggled_cell, gacha_type) {
+    this.range_status_cell = range_status_cell;
+    this.is_toggled_cell = is_toggled_cell;
+    this.gacha_type = gacha_type;
+  }
+
+  range_status(settingsSheet) {
+    return settingsSheet.getRange(this.range_status_cell).getValue();
+  }
+
+  set_range_status(value, settingsSheet) {
+    return settingsSheet.getRange(this.range_status_cell).setValue(value);
+  }
+
+  is_toggled(settingsSheet) {
+    return settingsSheet.getRange(this.is_toggled_cell).getValue();
+  }
+}
+
 var AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT = {
-  "Character Event Wish History": { "range_status": "E44", "range_toggle": "E37", "gacha_type": 301 },
-  "Permanent Wish History": { "range_status": "E45", "range_toggle": "E38", "gacha_type": 200 },
-  "Weapon Event Wish History": { "range_status": "E46", "range_toggle": "E39", "gacha_type": 302 },
-  "Novice Wish History": { "range_status": "E47", "range_toggle": "E40", "gacha_type": 100 },
+  "Character Event Wish History": new BannerSettings("E44", "E37", 301),
+  "Permanent Wish History": new BannerSettings("E45", "E38", 200),
+  "Weapon Event Wish History": new BannerSettings("E46", "E39", 302),
+  "Novice Wish History": new BannerSettings("E47", "E40", 100)
 };
 
 var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
-  "English": { "code": "en", "full_code": "en-us", "4_star": " (4-Star)", "5_star": " (5-Star)", "gacha_type_400": "Character Event Wish-2", "gacha_type_301": "Character Event Wish", "gacha_type_302": "Weapon Event Wish", "gacha_type_200": "Permanent Wish", "gacha_type_100": "Novice Wishes" },
-  "German": { "code": "de", "full_code": "de-de", "4_star": " (4 Sterne)", "5_star": " (5 Sterne)", "gacha_type_400": "Figurenaktionsgebet 2", "gacha_type_301": "Figurenaktionsgebet", "gacha_type_302": "Waffenaktionsgebet", "gacha_type_200": "Standardgebet", "gacha_type_100": "Neulingsgebete" },
-  "French": { "code": "fr", "full_code": "fr-fr", "4_star": " (4★)", "5_star": " (5★)", "gacha_type_400": "Vœux événements de personnage - 2", "gacha_type_301": "Vœux événements de personnage", "gacha_type_302": "Vœux événements d'arme", "gacha_type_200": "Vœux permanents", "gacha_type_100": "Vœux des débutants" },
-  "Spanish": { "code": "es", "full_code": "es-es", "4_star": " (4★)", "5_star": " (5★)", "gacha_type_400": "Gachapón promocional de personaje 2", "gacha_type_301": "Gachapón promocional de personaje", "gacha_type_302": "Gachapón promocional de arma", "gacha_type_200": "Gachapón permanente", "gacha_type_100": "Gachapón de principiante" },
-  "Chinese Traditional": { "code": "zh-tw", "full_code": "zh-tw", "4_star": " (四星)", "5_star": " (五星)", "gacha_type_400": "角色活動祈願-2", "gacha_type_301": "角色活動祈願", "gacha_type_302": "武器活動祈願", "gacha_type_200": "常駐祈願", "gacha_type_100": "新手祈願" },
-  "Chinese Simplified": { "code": "zh-cn", "full_code": "zh-cn", "4_star": " (四星)", "5_star": " (五星)", "gacha_type_400": "角色活动祈愿-2", "gacha_type_301": "角色活动祈愿", "gacha_type_302": "武器活动祈愿", "gacha_type_200": "常驻祈愿", "gacha_type_100": "新手祈愿" },
-  "Indonesian": { "code": "id", "full_code": "id-id", "4_star": " (4★)", "5_star": " (5★)", "gacha_type_400": "Event Permohonan Karakter - 2", "gacha_type_301": "Event Permohonan Karakter", "gacha_type_302": "Event Permohonan Senjata", "gacha_type_200": "Permohonan Standar", "gacha_type_100": "Permohonan Pemula" },
-  "Japanese": { "code": "ja", "full_code": "ja-jp", "4_star": " (★4)", "5_star": " (★5)", "gacha_type_400": "イベント祈願・キャラクター 2", "gacha_type_301": "イベント祈願・キャラクター", "gacha_type_302": "イベント祈願・武器", "gacha_type_200": "通常祈願", "gacha_type_100": "初心者向け祈願" },
-  "Vietnamese": { "code": "vi", "full_code": "vi-vn", "4_star": " (4 sao)", "5_star": " (5 sao)", "gacha_type_400": "Cầu Nguyện Nhân Vật-2", "gacha_type_301": "Cầu Nguyện Nhân Vật", "gacha_type_302": "Cầu Nguyện Vũ Khí", "gacha_type_200": "Cầu Nguyện Thường", "gacha_type_100": "Cầu Nguyện Tân Thủ" },
-  "Korean": { "code": "ko", "full_code": "ko-kr", "4_star": " (★4)", "5_star": " (★5)", "gacha_type_400": "캐릭터 이벤트 기원-2", "gacha_type_301": "캐릭터 이벤트 기원", "gacha_type_302": "무기 이벤트 기원", "gacha_type_200": "상주 기원", "gacha_type_100": "초심자 기원" },
-  "Portuguese": { "code": "pt", "full_code": "pt-pt", "4_star": " (4★)", "5_star": " (5★)", "gacha_type_400": "Oração de Evento de Personagem - 2", "gacha_type_301": "Oração de Evento de Personagem", "gacha_type_302": "Oração do Evento de Arma", "gacha_type_200": "Desejo Comum", "gacha_type_100": "Desejos de Novato" },
-  "Thai": { "code": "th", "full_code": "th-th", "4_star": " (4 ดาว)", "5_star": " (5 ดาว)", "gacha_type_400": "กิจกรรมอธิษฐานตัวละคร - 2", "gacha_type_301": "กิจกรรมอธิษฐานตัวละคร", "gacha_type_302": "กิจกรรมอธิษฐานอาวุธ", "gacha_type_200": "อธิษฐานถาวร", "gacha_type_100": "ผู้เริ่มอธิษฐาน" },
-  "Russian": { "code": "ru", "full_code": "ru-ru", "4_star": " (4★)", "5_star": " (5★)", "gacha_type_400": "Молитва события персонажа II", "gacha_type_301": "Молитва события персонажа", "gacha_type_302": "Молитва события оружия", "gacha_type_200": "Стандартная молитва", "gacha_type_100": "Молитва новичка" },
-  "Italian": { "code": "it", "full_code": "it-it", "4_star": " (4 ★)", "5_star": " (5 ★)", "gacha_type_400": "Desiderio evento personaggio 2", "gacha_type_301": "Desiderio evento personaggio", "gacha_type_302": "Desiderio evento arma", "gacha_type_200": "Desiderio standard", "gacha_type_100": "Desideri per viaggiatori novizi" },
-  "Turkish": { "code": "tr", "full_code": "tr-tr", "4_star": " (4 Yıldızlı)", "5_star": " (5 Yıldızlı)", "gacha_type_400": "Karakter Etkinliği Dileği-2", "gacha_type_301": "Karakter Etkinliği Dileği", "gacha_type_302": "Silah Etkinliği Dileği", "gacha_type_200": "Kalıcı Dilek", "gacha_type_100": "Acemi Dilekleri" }
+  English: {
+    code: "en",
+    full_code: "en-us",
+    "4_star": " (4-Star)",
+    "5_star": " (5-Star)",
+    gacha_type_400: "Character Event Wish-2",
+    gacha_type_301: "Character Event Wish",
+    gacha_type_302: "Weapon Event Wish",
+    gacha_type_200: "Permanent Wish",
+    gacha_type_100: "Novice Wishes",
+  },
+  German: {
+    code: "de",
+    full_code: "de-de",
+    "4_star": " (4 Sterne)",
+    "5_star": " (5 Sterne)",
+    gacha_type_400: "Figurenaktionsgebet 2",
+    gacha_type_301: "Figurenaktionsgebet",
+    gacha_type_302: "Waffenaktionsgebet",
+    gacha_type_200: "Standardgebet",
+    gacha_type_100: "Neulingsgebete",
+  },
+  French: {
+    code: "fr",
+    full_code: "fr-fr",
+    "4_star": " (4★)",
+    "5_star": " (5★)",
+    gacha_type_400: "Vœux événements de personnage - 2",
+    gacha_type_301: "Vœux événements de personnage",
+    gacha_type_302: "Vœux événements d'arme",
+    gacha_type_200: "Vœux permanents",
+    gacha_type_100: "Vœux des débutants",
+  },
+  Spanish: {
+    code: "es",
+    full_code: "es-es",
+    "4_star": " (4★)",
+    "5_star": " (5★)",
+    gacha_type_400: "Gachapón promocional de personaje 2",
+    gacha_type_301: "Gachapón promocional de personaje",
+    gacha_type_302: "Gachapón promocional de arma",
+    gacha_type_200: "Gachapón permanente",
+    gacha_type_100: "Gachapón de principiante",
+  },
+  "Chinese Traditional": {
+    code: "zh-tw",
+    full_code: "zh-tw",
+    "4_star": " (四星)",
+    "5_star": " (五星)",
+    gacha_type_400: "角色活動祈願-2",
+    gacha_type_301: "角色活動祈願",
+    gacha_type_302: "武器活動祈願",
+    gacha_type_200: "常駐祈願",
+    gacha_type_100: "新手祈願",
+  },
+  "Chinese Simplified": {
+    code: "zh-cn",
+    full_code: "zh-cn",
+    "4_star": " (四星)",
+    "5_star": " (五星)",
+    gacha_type_400: "角色活动祈愿-2",
+    gacha_type_301: "角色活动祈愿",
+    gacha_type_302: "武器活动祈愿",
+    gacha_type_200: "常驻祈愿",
+    gacha_type_100: "新手祈愿",
+  },
+  Indonesian: {
+    code: "id",
+    full_code: "id-id",
+    "4_star": " (4★)",
+    "5_star": " (5★)",
+    gacha_type_400: "Event Permohonan Karakter - 2",
+    gacha_type_301: "Event Permohonan Karakter",
+    gacha_type_302: "Event Permohonan Senjata",
+    gacha_type_200: "Permohonan Standar",
+    gacha_type_100: "Permohonan Pemula",
+  },
+  Japanese: {
+    code: "ja",
+    full_code: "ja-jp",
+    "4_star": " (★4)",
+    "5_star": " (★5)",
+    gacha_type_400: "イベント祈願・キャラクター 2",
+    gacha_type_301: "イベント祈願・キャラクター",
+    gacha_type_302: "イベント祈願・武器",
+    gacha_type_200: "通常祈願",
+    gacha_type_100: "初心者向け祈願",
+  },
+  Vietnamese: {
+    code: "vi",
+    full_code: "vi-vn",
+    "4_star": " (4 sao)",
+    "5_star": " (5 sao)",
+    gacha_type_400: "Cầu Nguyện Nhân Vật-2",
+    gacha_type_301: "Cầu Nguyện Nhân Vật",
+    gacha_type_302: "Cầu Nguyện Vũ Khí",
+    gacha_type_200: "Cầu Nguyện Thường",
+    gacha_type_100: "Cầu Nguyện Tân Thủ",
+  },
+  Korean: {
+    code: "ko",
+    full_code: "ko-kr",
+    "4_star": " (★4)",
+    "5_star": " (★5)",
+    gacha_type_400: "캐릭터 이벤트 기원-2",
+    gacha_type_301: "캐릭터 이벤트 기원",
+    gacha_type_302: "무기 이벤트 기원",
+    gacha_type_200: "상주 기원",
+    gacha_type_100: "초심자 기원",
+  },
+  Portuguese: {
+    code: "pt",
+    full_code: "pt-pt",
+    "4_star": " (4★)",
+    "5_star": " (5★)",
+    gacha_type_400: "Oração de Evento de Personagem - 2",
+    gacha_type_301: "Oração de Evento de Personagem",
+    gacha_type_302: "Oração do Evento de Arma",
+    gacha_type_200: "Desejo Comum",
+    gacha_type_100: "Desejos de Novato",
+  },
+  Thai: {
+    code: "th",
+    full_code: "th-th",
+    "4_star": " (4 ดาว)",
+    "5_star": " (5 ดาว)",
+    gacha_type_400: "กิจกรรมอธิษฐานตัวละคร - 2",
+    gacha_type_301: "กิจกรรมอธิษฐานตัวละคร",
+    gacha_type_302: "กิจกรรมอธิษฐานอาวุธ",
+    gacha_type_200: "อธิษฐานถาวร",
+    gacha_type_100: "ผู้เริ่มอธิษฐาน",
+  },
+  Russian: {
+    code: "ru",
+    full_code: "ru-ru",
+    "4_star": " (4★)",
+    "5_star": " (5★)",
+    gacha_type_400: "Молитва события персонажа II",
+    gacha_type_301: "Молитва события персонажа",
+    gacha_type_302: "Молитва события оружия",
+    gacha_type_200: "Стандартная молитва",
+    gacha_type_100: "Молитва новичка",
+  },
+  Italian: {
+    code: "it",
+    full_code: "it-it",
+    "4_star": " (4 ★)",
+    "5_star": " (5 ★)",
+    gacha_type_400: "Desiderio evento personaggio 2",
+    gacha_type_301: "Desiderio evento personaggio",
+    gacha_type_302: "Desiderio evento arma",
+    gacha_type_200: "Desiderio standard",
+    gacha_type_100: "Desideri per viaggiatori novizi",
+  },
+  Turkish: {
+    code: "tr",
+    full_code: "tr-tr",
+    "4_star": " (4 Yıldızlı)",
+    "5_star": " (5 Yıldızlı)",
+    gacha_type_400: "Karakter Etkinliği Dileği-2",
+    gacha_type_301: "Karakter Etkinliği Dileği",
+    gacha_type_302: "Silah Etkinliği Dileği",
+    gacha_type_200: "Kalıcı Dilek",
+    gacha_type_100: "Acemi Dilekleri",
+  },
 };
 
 var AUTO_IMPORT_ADDITIONAL_QUERY = [
@@ -105,7 +276,12 @@ var WISH_TALLY_AVAILABLE_SHEET_NAME = "Available";
 var WISH_TALLY_CRYSTAL_CALCULATOR_SHEET_NAME = "Crystal Calculator";
 var WISH_TALLY_ALL_WISH_HISTORY_SHEET_NAME = "All Wish History";
 var WISH_TALLY_ITEMS_SHEET_NAME = "Items";
-var WISH_TALLY_NAME_OF_WISH_HISTORY = [WISH_TALLY_CHARACTER_EVENT_WISH_SHEET_NAME, WISH_TALLY_PERMANENT_WISH_SHEET_NAME, WISH_TALLY_WEAPON_EVENT_WISH_SHEET_NAME, WISH_TALLY_NOVICE_WISH_SHEET_NAME];
+var WISH_TALLY_NAME_OF_WISH_HISTORY = [
+  WISH_TALLY_CHARACTER_EVENT_WISH_SHEET_NAME,
+  WISH_TALLY_PERMANENT_WISH_SHEET_NAME,
+  WISH_TALLY_WEAPON_EVENT_WISH_SHEET_NAME,
+  WISH_TALLY_NOVICE_WISH_SHEET_NAME,
+];
 // AutoHotkey Const
 var AUTOHOTKEY_SHEET_NAME = "AutoHotkey";
 var AUTOHOTKEY_SCRIPT_SHEET_NAME = "AutoHotkey-Script";

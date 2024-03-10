@@ -26,17 +26,15 @@ function testAuthKeyInputValidity(userInput) {
   const USING_BANNER = "Permanent Wish History";
 
   var settingsSheet = getSettingsSheet();
-  var queryBannerCode = AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT[USING_BANNER]["gacha_type"];
+  var queryBannerCode = AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT[USING_BANNER].gacha_type;
   var selectedServer = settingsSheet.getRange("B3").getValue();
   var languageSettings = AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT[settingsSheet.getRange("B2").getValue()];
   if (languageSettings == null) {
     // Get default language
     languageSettings = AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT["English"];
   }
-  var urlForWishHistory = selectedServer == "China" ? AUTO_IMPORT_URL_CHINA : AUTO_IMPORT_URL;
-  urlForWishHistory += "?" + AUTO_IMPORT_ADDITIONAL_QUERY.join("&") + "&authkey=" + authKey + "&lang=" + languageSettings['code'] + "&gacha_type=" + queryBannerCode;
-
-  responseJson = JSON.parse(UrlFetchApp.fetch(urlForWishHistory).getContentText());
+  var url = getWishHistoryUrl(selectedServer, queryBannerCode, languageSettings, 1, authKey);
+  responseJson = JSON.parse(UrlFetchApp.fetch(url).getContentText());
   if (responseJson.retcode === 0) {
     return true;
   }
@@ -81,10 +79,7 @@ function getCachedAuthKeyInput() {
 }
 
 
-var errorCodeNotEncountered = true;
-
 function importFromAPI(urlForAPI) {
-  errorCodeNotEncountered = true;
   var settingsSheet = getSettingsSheet();
   settingsSheet.getRange("E42").setValue(new Date());
   settingsSheet.getRange("E43").setValue("");
@@ -92,16 +87,16 @@ function importFromAPI(urlForAPI) {
   if (AUTO_IMPORT_URL_FOR_API_BYPASS != "") {
     urlForAPI = AUTO_IMPORT_URL_FOR_API_BYPASS;
   }
-  var foundAuth = extractAuthKeyFromInput(urlForAPI);
+  var authKey = extractAuthKeyFromInput(urlForAPI);
   var bannerName;
   var bannerSheet;
   var bannerSettings;
-  if (foundAuth == "") {
+  if (authKey == "") {
     // Display auth key not available
     for (var i = 0; i < WISH_TALLY_NAME_OF_WISH_HISTORY.length; i++) {
       bannerName = WISH_TALLY_NAME_OF_WISH_HISTORY[i];
       bannerSettings = AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT[bannerName];
-      settingsSheet.getRange(bannerSettings['range_status']).setValue("No auth key");
+      bannerSettings.set_range_status("No auth key", settingsSheet);
     }
   } else {
     var selectedLanguageCode = settingsSheet.getRange("B2").getValue();
@@ -111,46 +106,45 @@ function importFromAPI(urlForAPI) {
       // Get default language
       languageSettings = AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT["English"];
     }
-    var urlForWishHistory;
-    if (selectedServer == "China") {
-      urlForWishHistory = AUTO_IMPORT_URL_CHINA;
-    } else {
-      urlForWishHistory = AUTO_IMPORT_URL;
-    }
-    urlForWishHistory += "?"+AUTO_IMPORT_ADDITIONAL_QUERY.join("&")+"&authkey="+foundAuth+"&lang="+languageSettings['code'];
-    errorCodeNotEncountered = true;
     // Clear status
     for (var i = 0; i < WISH_TALLY_NAME_OF_WISH_HISTORY.length; i++) {
       bannerName = WISH_TALLY_NAME_OF_WISH_HISTORY[i];
       bannerSettings = AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT[bannerName];
-      settingsSheet.getRange(bannerSettings['range_status']).setValue("");
+      bannerSettings.set_range_status("", settingsSheet);
     }
     for (var i = 0; i < WISH_TALLY_NAME_OF_WISH_HISTORY.length; i++) {
-      if (errorCodeNotEncountered) {
-        bannerName = WISH_TALLY_NAME_OF_WISH_HISTORY[i];
-        bannerSettings = AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT[bannerName];
-        var isToggled = settingsSheet.getRange(bannerSettings['range_toggle']).getValue();
-        if (isToggled == true) {
-          bannerSheet = SpreadsheetApp.getActive().getSheetByName(bannerName);
-          if (bannerSheet) {
-            checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, languageSettings, settingsSheet);
-          } else {
-            settingsSheet.getRange(bannerSettings['range_status']).setValue("Missing sheet");
+      bannerName = WISH_TALLY_NAME_OF_WISH_HISTORY[i];
+      bannerSettings = AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT[bannerName];
+      if (bannerSettings.is_toggled(settingsSheet)) {
+        bannerSheet = SpreadsheetApp.getActive().getSheetByName(bannerName);
+        if (bannerSheet) {
+          var success = checkPages(
+            bannerSheet,
+            bannerName,
+            bannerSettings,
+            languageSettings,
+            selectedServer,
+            settingsSheet,
+            authKey);
+          if (!success) {
+            bannerSettings.set_range_status(
+              "Stopped Due to Error:\n" + bannerSettings.range_status(settingsSheet),
+              settingsSheet);
+            break;
           }
         } else {
-          settingsSheet.getRange(bannerSettings['range_status']).setValue("Skipped");
+          bannerSettings.set_range_status("Missing sheet", settingsSheet);
         }
       } else {
-        settingsSheet.getRange(bannerSettings['range_status']).setValue("Stopped Due to Error:\n"+settingsSheet.getRange(bannerSettings['range_status']).getValue());
-        break;
+        bannerSettings.set_range_status("Skipped", settingsSheet);
       }
     }
   }
   settingsSheet.getRange("E43").setValue(new Date());
 }
 
-function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, languageSettings, settingsSheet) {
-  settingsSheet.getRange(bannerSettings['range_status']).setValue("Starting");
+function checkPages(bannerSheet, bannerName, bannerSettings, languageSettings, selectedServer, settingsSheet, authKey) {
+  bannerSettings.set_range_status("Starting", settingsSheet);
   /* Get latest wish from banner */
   var iLastRow = bannerSheet.getRange(2, 5, bannerSheet.getLastRow(), 1).getValues().filter(String).length;
   var wishTextString;
@@ -161,24 +155,29 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
     lastWishDateAndTimeString = bannerSheet.getRange("E" + iLastRow).getValue();
     wishTextString = bannerSheet.getRange("A" + iLastRow).getValue();
     if (lastWishDateAndTimeString) {
-      settingsSheet.getRange(bannerSettings['range_status']).setValue("Last wish: "+lastWishDateAndTimeString);
+      bannerSettings.set_range_status(`Last wish: ${lastWishDateAndTimeString}`, settingsSheet);
       lastWishDateAndTimeString = lastWishDateAndTimeString.split(" ").join("T");
       lastWishDateAndTime = new Date(lastWishDateAndTimeString+".000Z");
     } else {
       iLastRow = 1;
-      settingsSheet.getRange(bannerSettings['range_status']).setValue("No previous wishes");
+      bannerSettings.set_range_status("No previous wishes", settingsSheet);
     }
     iLastRow++; // Move last row to new row
   } else {
     iLastRow = 2; // Move last row to new row
-    settingsSheet.getRange(bannerSettings['range_status']).setValue("");
+    bannerSettings.set_range_status("", settingsSheet);
   }
   
   var extractWishes = [];
   var page = 1;
-  var queryBannerCode = bannerSettings["gacha_type"];
+  var queryBannerCode = bannerSettings.gacha_type;
   var numberOfWishPerPage = 6;
-  var urlForBanner = urlForWishHistory+"&gacha_type="+queryBannerCode+"&size="+numberOfWishPerPage;
+  var urlForBanner = getWishHistoryUrl(
+    selectedServer,
+    queryBannerCode,
+    languageSettings,
+    numberOfWishPerPage,
+    authKey);
   var failed = 0;
   var is_done = false;
   var end_id = 0;
@@ -190,7 +189,7 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
   var textWish;
   var oldTextWish;
   while (!is_done) {
-    settingsSheet.getRange(bannerSettings['range_status']).setValue("Loading page: "+page);
+    bannerSettings.set_range_status("Loading page: "+page, settingsSheet);
     var response = UrlFetchApp.fetch(urlForBanner+"&page="+page+"&end_id="+end_id);
     var jsonResponse = response.getContentText();
     var jsonDict = JSON.parse(jsonResponse);
@@ -251,10 +250,10 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
               extractWishes[previousWishIndex] = previousWish;
             }
             if (overrideIndex == 1) {
-              errorCodeNotEncountered = false;
-              is_done = true;
-              settingsSheet.getRange(bannerSettings['range_status']).setValue("Error: Multi wish contains 11 within same date and time:"+dateAndTimeString+", found so far: "+extractWishes.length);
-              break;
+              bannerSettings.set_range_status(
+                `Error: Multi wish contains 11 within same date and time: ${dateAndTimeString}, found so far: ${extractWishes.length}`,
+                settingsSheet);
+              return false;
             } else {
               overrideIndex--;
             }
@@ -266,10 +265,10 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
                 // Within 1 second range resuming multi count
                 overrideIndex--;
               } else {
-                errorCodeNotEncountered = false;
-                is_done = true;
-                settingsSheet.getRange(bannerSettings['range_status']).setValue("Error: Multi wish is incomplete with override "+overrideIndex+"@"+dateAndTimeString+", found so far: "+extractWishes.length);
-                break;
+                bannerSettings.set_range_status(
+                  `Error: Multi wish is incomplete with override ${overrideIndex}@${dateAndTimeString}, found so far: ${extractWishes.length}`,
+                  settingsSheet);
+                return false;
               }
             } else {
               // Default value for single wishes
@@ -298,65 +297,76 @@ function checkPages(urlForWishHistory, bannerSheet, bannerName, bannerSettings, 
       }
     } else {
       var message = jsonDict["message"];
-      var title ="Error code: "+jsonDict["retcode"];
-      SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
-      if (AUTO_IMPORT_URL_ERROR_CODE_AUTHKEY_DENIED == jsonDict["retcode"]) {
-        errorCodeNotEncountered = false;
-        is_done = true;
-        settingsSheet.getRange(bannerSettings['range_status']).setValue("feedback URL\nNo Longer Works");
-      } else if (AUTO_IMPORT_URL_ERROR_CODE_AUTH_TIMEOUT == jsonDict["retcode"]) {
-        errorCodeNotEncountered = false;
-        is_done = true;
-        settingsSheet.getRange(bannerSettings['range_status']).setValue("auth timeout");
-      } else if (AUTO_IMPORT_URL_ERROR_CODE_AUTH_INVALID == jsonDict["retcode"]) {
-        errorCodeNotEncountered = false;
-        is_done = true;
-        settingsSheet.getRange(bannerSettings['range_status']).setValue("auth invalid");
-      } else if (AUTO_IMPORT_URL_ERROR_CODE_REQUEST_PARAMS == jsonDict["retcode"]) {
-        errorCodeNotEncountered = false;
-        is_done = true;
-        settingsSheet.getRange(bannerSettings['range_status']).setValue("Change server setting");
-      }
+      var return_code = jsonDict["retcode"];
 
-      failed++;
-      if (failed > 2){
-        is_done = true;
-      }
-    }
-  }
-  if (failed > 2){
-    settingsSheet.getRange(bannerSettings['range_status']).setValue("Failed too many times");
-  } else {
-    if (errorCodeNotEncountered) {
-      if (extractWishes.length > 0) {
-        var now = new Date();
-        var sixMonthBeforeNow = new Date(now.valueOf());
-        sixMonthBeforeNow.setMonth(now.getMonth() - 6);
-        var isValid = true;
-        var outputString = "Found: "+extractWishes.length;
-        if (!lastWishDateAndTime) {
-          // fresh history sheet no last date to check
-          outputString += ", with wish history being empty"
-        } else if (lastWishDateAndTime < sixMonthBeforeNow) {
-          // Check if last wish found is more than 6 months, no further validation
-          outputString += ", last wish saved was 6 months ago, maybe missing wishes inbetween"
-        } else {
-          if (wishTextString !== textWish) {
-            if (wishTextString !== oldTextWish) {
-              // API didn't reach to your last wish stored on the sheet, meaning the API is incomplete
-              isValid = false;
-              outputString = "Error your recently found wishes did not reach to your last wish, found: "+extractWishes.length+", please try again miHoYo may have sent incomplete wish data.";
-            }
+      var title ="Error code: "+return_code;
+      SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
+
+      switch (return_code) {
+        case AUTO_IMPORT_URL_ERROR_CODE_AUTHKEY_DENIED:
+          bannerSettings.set_range_status("feedback URL\nNo Longer Works", settingsSheet);
+          return false;
+        case AUTO_IMPORT_URL_ERROR_CODE_AUTH_TIMEOUT:
+          bannerSettings.set_range_status("auth timeout", settingsSheet);
+          return false;
+        case AUTO_IMPORT_URL_ERROR_CODE_AUTH_INVALID:
+          bannerSettings.set_range_status("auth invalid", settingsSheet);
+          return false;
+        case AUTO_IMPORT_URL_ERROR_CODE_REQUEST_PARAMS:
+          bannerSettings.set_range_status("Change server setting", settingsSheet);
+          return false;
+        default:
+          bannerSettings.set_range_status(`Unknown return code: ${return_code}`, settingsSheet);
+          failed++;
+          if (failed > 2){
+            bannerSettings.set_range_status("Failed too many times", bannerSettings, settingsSheet);
+            // Preserve legacy behavior which did not treat this the same as other error code
+            // cases
+            return true;
           }
-        }
-        if (isValid) {
-          extractWishes.reverse();
-          bannerSheet.getRange(iLastRow, 1, extractWishes.length, 2).setValues(extractWishes);
-        }
-        settingsSheet.getRange(bannerSettings['range_status']).setValue(outputString);
-      } else {
-        settingsSheet.getRange(bannerSettings['range_status']).setValue("Nothing to add");
       }
     }
   }
+
+  if (extractWishes.length > 0) {
+    var now = new Date();
+    var sixMonthBeforeNow = new Date(now.valueOf());
+    sixMonthBeforeNow.setMonth(now.getMonth() - 6);
+    var isValid = true;
+    var outputString = "Found: "+extractWishes.length;
+    if (!lastWishDateAndTime) {
+      // fresh history sheet no last date to check
+      outputString += ", with wish history being empty"
+    } else if (lastWishDateAndTime < sixMonthBeforeNow) {
+      // Check if last wish found is more than 6 months, no further validation
+      outputString += ", last wish saved was 6 months ago, maybe missing wishes inbetween"
+    } else {
+      if (wishTextString !== textWish) {
+        if (wishTextString !== oldTextWish) {
+          // API didn't reach to your last wish stored on the sheet, meaning the API is incomplete
+          isValid = false;
+          outputString = "Error your recently found wishes did not reach to your last wish, found: "+extractWishes.length+", please try again miHoYo may have sent incomplete wish data.";
+        }
+      }
+    }
+    if (isValid) {
+      extractWishes.reverse();
+      bannerSheet.getRange(iLastRow, 1, extractWishes.length, 2).setValues(extractWishes);
+    }
+    bannerSettings.set_range_status(outputString, settingsSheet);
+  } else {
+    bannerSettings.set_range_status("Nothing to add", settingsSheet);
+  }
+
+  return true;
+}
+
+function getWishHistoryUrl(selectedServer, queryBannerCode, languageSettings, numberOfWishPerPage, authKey) {
+    var base_url;
+    if (selectedServer == "China") {
+      base_url = AUTO_IMPORT_URL_CHINA;
+    } else {
+      base_url = AUTO_IMPORT_URL;
+    }
+    return `${base_url}?${AUTO_IMPORT_ADDITIONAL_QUERY.join("&")}&authkey=${authKey}&lang=${languageSettings['code']}&gacha_type=${queryBannerCode}&size=${numberOfWishPerPage}`;
 }
