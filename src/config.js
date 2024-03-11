@@ -14,22 +14,22 @@ var WISH_TALLY_SHEET_SCRIPT_IS_ADD_ON = false;
 var AUTO_IMPORT_URL_FOR_API_BYPASS = ""; // Optional
 
 class BannerSettings {
-  constructor(range_status_cell, is_toggled_cell, gacha_type) {
-    this.range_status_cell = range_status_cell;
-    this.is_toggled_cell = is_toggled_cell;
+  constructor(status_cell_cell, is_enabled_cell, gacha_type) {
+    this.status_cell_cell = status_cell_cell;
+    this.is_enabled_cell = is_enabled_cell;
     this.gacha_type = gacha_type;
   }
 
-  range_status(settingsSheet) {
-    return settingsSheet.getRange(this.range_status_cell).getValue();
+  getStatusText(settingsSheet) {
+    return settingsSheet.getRange(this.status_cell_cell).getValue();
   }
 
-  set_range_status(value, settingsSheet) {
-    return settingsSheet.getRange(this.range_status_cell).setValue(value);
+  setStatusText(value, settingsSheet) {
+    return settingsSheet.getRange(this.status_cell_cell).setValue(value);
   }
 
-  is_toggled(settingsSheet) {
-    return settingsSheet.getRange(this.is_toggled_cell).getValue();
+  isEnabled(settingsSheet) {
+    return settingsSheet.getRange(this.is_enabled_cell).getValue();
   }
 }
 
