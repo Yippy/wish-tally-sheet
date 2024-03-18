@@ -26,6 +26,10 @@ function moveToNoviceWishHistorySheet() {
   moveToSheetByName(WISH_TALLY_NOVICE_WISH_SHEET_NAME);
 }
 
+function moveToChronicledWishHistorySheet() {
+  moveToSheetByName(WISH_TALLY_CHRONICLED_WISH_SHEET_NAME);
+}
+
 function moveToChangelogSheet() {
   moveToSheetByName(WISH_TALLY_CHANGELOG_SHEET_NAME);
 }

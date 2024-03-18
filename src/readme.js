@@ -88,7 +88,7 @@ function displayReadme() {
     var contentsAvailable = sheetREADME.getRange(13, hyperlinkColumn).getValue();
     var contentsStartIndex = 15;
     generateRichTextLinks(sheetREADME, contentsAvailable, contentsStartIndex, hyperlinkColumn, false);
-    reorderSheets();
+    reorderSheets(settingsSheet);
     SpreadsheetApp.getActive().setActiveSheet(sheetREADME);
   } else {
     var message = 'Unable to connect to source';

@@ -6,7 +6,8 @@
 var WISH_TALLY_SHEET_SOURCE_REDIRECT_ID = '1Um4vaqyYDRXqpnB6vFcz92lvfW0VGIrevTH7eT8RTtg';
 var WISH_TALLY_SHEET_SUPPORTED_LOCALE = "en_GB";
 var WISH_TALLY_SHEET_TOOLBAR_NAME = "Wish Tally";
-var WISH_TALLY_SHEET_SCRIPT_VERSION = 3.61;
+var WISH_TALLY_SHEET_SCRIPT_VERSION = 4.0;
+var WISH_TALLY_SHEET_SCRIPT_MIGRATION_V4_VERSION = 4.0;
 var WISH_TALLY_SHEET_SCRIPT_IS_ADD_ON = false;
 
 // Auto Import Const
@@ -37,7 +38,8 @@ var AUTO_IMPORT_BANNER_SETTINGS_FOR_IMPORT = {
   "Character Event Wish History": new BannerSettings("E44", "E37", 301),
   "Permanent Wish History": new BannerSettings("E45", "E38", 200),
   "Weapon Event Wish History": new BannerSettings("E46", "E39", 302),
-  "Novice Wish History": new BannerSettings("E47", "E40", 100)
+  "Novice Wish History": new BannerSettings("E47", "E40", 100),
+  "Chronicled Wish History": new BannerSettings("E48", "E41", 500)
 };
 
 var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
@@ -46,6 +48,7 @@ var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
     full_code: "en-us",
     "4_star": " (4-Star)",
     "5_star": " (5-Star)",
+    gacha_type_500: "Chronicled Wish",
     gacha_type_400: "Character Event Wish-2",
     gacha_type_301: "Character Event Wish",
     gacha_type_302: "Weapon Event Wish",
@@ -57,6 +60,7 @@ var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
     full_code: "de-de",
     "4_star": " (4 Sterne)",
     "5_star": " (5 Sterne)",
+    gacha_type_500: "Kollektionsgebet",
     gacha_type_400: "Figurenaktionsgebet 2",
     gacha_type_301: "Figurenaktionsgebet",
     gacha_type_302: "Waffenaktionsgebet",
@@ -68,6 +72,7 @@ var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
     full_code: "fr-fr",
     "4_star": " (4★)",
     "5_star": " (5★)",
+    gacha_type_500: "Vœux nostalgie",
     gacha_type_400: "Vœux événements de personnage - 2",
     gacha_type_301: "Vœux événements de personnage",
     gacha_type_302: "Vœux événements d'arme",
@@ -79,6 +84,7 @@ var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
     full_code: "es-es",
     "4_star": " (4★)",
     "5_star": " (5★)",
+    gacha_type_500: "Gachapón recopilatorio",
     gacha_type_400: "Gachapón promocional de personaje 2",
     gacha_type_301: "Gachapón promocional de personaje",
     gacha_type_302: "Gachapón promocional de arma",
@@ -90,6 +96,7 @@ var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
     full_code: "zh-tw",
     "4_star": " (四星)",
     "5_star": " (五星)",
+    gacha_type_500: "集錄祈願",
     gacha_type_400: "角色活動祈願-2",
     gacha_type_301: "角色活動祈願",
     gacha_type_302: "武器活動祈願",
@@ -101,6 +108,7 @@ var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
     full_code: "zh-cn",
     "4_star": " (四星)",
     "5_star": " (五星)",
+    gacha_type_500: "集录祈愿",
     gacha_type_400: "角色活动祈愿-2",
     gacha_type_301: "角色活动祈愿",
     gacha_type_302: "武器活动祈愿",
@@ -112,6 +120,7 @@ var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
     full_code: "id-id",
     "4_star": " (4★)",
     "5_star": " (5★)",
+    gacha_type_500: "Chronicled Wish",
     gacha_type_400: "Event Permohonan Karakter - 2",
     gacha_type_301: "Event Permohonan Karakter",
     gacha_type_302: "Event Permohonan Senjata",
@@ -123,6 +132,7 @@ var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
     full_code: "ja-jp",
     "4_star": " (★4)",
     "5_star": " (★5)",
+    gacha_type_500: "集録祈願",
     gacha_type_400: "イベント祈願・キャラクター 2",
     gacha_type_301: "イベント祈願・キャラクター",
     gacha_type_302: "イベント祈願・武器",
@@ -134,6 +144,7 @@ var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
     full_code: "vi-vn",
     "4_star": " (4 sao)",
     "5_star": " (5 sao)",
+    gacha_type_500: "Sử Ký Cầu Nguyện",
     gacha_type_400: "Cầu Nguyện Nhân Vật-2",
     gacha_type_301: "Cầu Nguyện Nhân Vật",
     gacha_type_302: "Cầu Nguyện Vũ Khí",
@@ -145,6 +156,7 @@ var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
     full_code: "ko-kr",
     "4_star": " (★4)",
     "5_star": " (★5)",
+    gacha_type_500: "묶음 기원",
     gacha_type_400: "캐릭터 이벤트 기원-2",
     gacha_type_301: "캐릭터 이벤트 기원",
     gacha_type_302: "무기 이벤트 기원",
@@ -156,6 +168,7 @@ var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
     full_code: "pt-pt",
     "4_star": " (4★)",
     "5_star": " (5★)",
+    gacha_type_500: "Registro de Oração",
     gacha_type_400: "Oração de Evento de Personagem - 2",
     gacha_type_301: "Oração de Evento de Personagem",
     gacha_type_302: "Oração do Evento de Arma",
@@ -167,6 +180,7 @@ var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
     full_code: "th-th",
     "4_star": " (4 ดาว)",
     "5_star": " (5 ดาว)",
+    gacha_type_500: "การอธิษฐานรวมปรารถนา",
     gacha_type_400: "กิจกรรมอธิษฐานตัวละคร - 2",
     gacha_type_301: "กิจกรรมอธิษฐานตัวละคร",
     gacha_type_302: "กิจกรรมอธิษฐานอาวุธ",
@@ -178,6 +192,7 @@ var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
     full_code: "ru-ru",
     "4_star": " (4★)",
     "5_star": " (5★)",
+    gacha_type_500: "Молитва хроник",
     gacha_type_400: "Молитва события персонажа II",
     gacha_type_301: "Молитва события персонажа",
     gacha_type_302: "Молитва события оружия",
@@ -189,6 +204,7 @@ var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
     full_code: "it-it",
     "4_star": " (4 ★)",
     "5_star": " (5 ★)",
+    gacha_type_500: "Desiderio delle cronache",
     gacha_type_400: "Desiderio evento personaggio 2",
     gacha_type_301: "Desiderio evento personaggio",
     gacha_type_302: "Desiderio evento arma",
@@ -200,6 +216,7 @@ var AUTO_IMPORT_LANGUAGE_SETTINGS_FOR_IMPORT = {
     full_code: "tr-tr",
     "4_star": " (4 Yıldızlı)",
     "5_star": " (5 Yıldızlı)",
+    gacha_type_500: "Nostaljik Dilek",
     gacha_type_400: "Karakter Etkinliği Dileği-2",
     gacha_type_301: "Karakter Etkinliği Dileği",
     gacha_type_302: "Silah Etkinliği Dileği",
@@ -252,6 +269,7 @@ var WISH_TALLY_WEAPON_EVENT_WISH_SHEET_NAME = "Weapon Event Wish History";
 var WISH_TALLY_PERMANENT_WISH_SHEET_NAME = "Permanent Wish History";
 var WISH_TALLY_NOVICE_WISH_SHEET_NAME = "Novice Wish History";
 var WISH_TALLY_WISH_HISTORY_SHEET_NAME = "Wish History";
+var WISH_TALLY_CHRONICLED_WISH_SHEET_NAME = "Chronicled Wish History";
 var WISH_TALLY_SETTINGS_SHEET_NAME = "Settings";
 var WISH_TALLY_DASHBOARD_SHEET_NAME = "Dashboard";
 var WISH_TALLY_CHANGELOG_SHEET_NAME = "Changelog";
@@ -281,6 +299,7 @@ var WISH_TALLY_NAME_OF_WISH_HISTORY = [
   WISH_TALLY_PERMANENT_WISH_SHEET_NAME,
   WISH_TALLY_WEAPON_EVENT_WISH_SHEET_NAME,
   WISH_TALLY_NOVICE_WISH_SHEET_NAME,
+  WISH_TALLY_CHRONICLED_WISH_SHEET_NAME
 ];
 // AutoHotkey Const
 var AUTOHOTKEY_SHEET_NAME = "AutoHotkey";

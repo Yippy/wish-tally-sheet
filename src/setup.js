@@ -77,6 +77,9 @@ function getDefaultMenu() {
   .addSubMenu(ui.createMenu('Novice Wish History')
             .addItem('Sort Range', 'sortNoviceWishHistory')
             .addItem('Refresh Formula', 'addFormulaNoviceWishHistory'))
+  .addSubMenu(ui.createMenu('Chronicled Wish History')
+            .addItem('Sort Range', 'sortChronicledWishHistory')
+            .addItem('Refresh Formula', 'addFormulaChronicledWishHistory'))
   .addSeparator()
   .addSubMenu(ui.createMenu('AutoHotkey')
             .addItem('Clear', 'clearAHK')
@@ -120,6 +123,10 @@ function getSettingsSheet() {
       getDefaultMenu();
     }
   } else {
+    if (settingsSheet.getRange("H1").getValue() < WISH_TALLY_SHEET_SCRIPT_MIGRATION_V4_VERSION) {
+      // Settings must be edited for new Chronicled	banner
+      migrationV4(settingsSheet);
+    }
     settingsSheet.getRange("H1").setValue(WISH_TALLY_SHEET_SCRIPT_VERSION);
   }
   var dashboardSheet = SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_DASHBOARD_SHEET_NAME);
@@ -132,7 +139,8 @@ function getSettingsSheet() {
       dashboardSheet = sheetDashboardSource.copyTo(SpreadsheetApp.getActiveSpreadsheet());
       dashboardSheet.setName(WISH_TALLY_DASHBOARD_SHEET_NAME);
     }
-  } else {
+  }
+  if (dashboardSheet) {
     if (WISH_TALLY_SHEET_SCRIPT_IS_ADD_ON) {
       dashboardSheet.getRange(dashboardEditRange[8]).setFontColor("green").setFontWeight("bold").setHorizontalAlignment("left").setValue("Add-On Enabled");
     } else {
@@ -140,4 +148,30 @@ function getSettingsSheet() {
     }
   }
   return settingsSheet;
+}
+
+function migrationV4(settingsSheet) {
+  settingsSheet.getRange("D13:E13").breakApart().setFontFamily('Arial').setFontSize('10').setBorder(false, null, true, null, null, null, "black", SpreadsheetApp.BorderStyle.SOLID);
+  settingsSheet.getRange("D13").setValue("Chronicled").setBackground("#cccccc");
+  settingsSheet.getRange("E13").setValue("NOT DONE").setBackground("#cccccc").setFontWeight("");
+
+  var title = "Schedule Task";
+  var text  = "Schedule Task"+ String.fromCharCode(10)+"If you wish to have functions run automatically";
+  var bold  = SpreadsheetApp.newTextStyle().setBold(true).build();
+  var value = SpreadsheetApp.newRichTextValue().setText(text).setTextStyle(text.indexOf(title), title.length, bold).build();
+
+  SpreadsheetApp.getActiveSheet().getRange('D14').setRichTextValue(value).setBackground("#cccccc");
+
+  settingsSheet.getRange("D41:E41").breakApart();
+  settingsSheet.getRange("D41").setValue("Chronicled").setBackground("#cccccc");
+  settingsSheet.getRange("E41").insertCheckboxes().setValue(true).setBackground("#ffffff");
+  if (settingsSheet.getMaxRows() == 47) {
+    settingsSheet.insertRowAfter(47);
+  }
+  settingsSheet.getRange("D48").setValue("Chronicled").setBackground("#cccccc");
+  settingsSheet.getRange("E48").setValue("").setBackground("#cccccc");
+  var sheetDashboardSource =SpreadsheetApp.getActive().getSheetByName(WISH_TALLY_DASHBOARD_SHEET_NAME);
+  if (sheetDashboardSource) {
+    SpreadsheetApp.getActiveSpreadsheet().deleteSheet(sheetDashboardSource);
+  }
 }

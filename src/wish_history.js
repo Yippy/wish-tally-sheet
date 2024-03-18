@@ -27,6 +27,13 @@ function addFormulaWeaponEventWishHistory() {
 function addFormulaNoviceWishHistory() {
   addFormulaByWishHistoryName(WISH_TALLY_NOVICE_WISH_SHEET_NAME);
 }
+/**
+* Add Formula Chronicled Wish History
+*/
+function addFormulaChronicledWishHistory() {
+  addFormulaByWishHistoryName(WISH_TALLY_CHRONICLED_WISH_SHEET_NAME);
+}
+
 
 /**
 * Add Formula for selected Wish History sheet
@@ -37,18 +44,20 @@ function addFormulaWishHistory() {
   if (WISH_TALLY_NAME_OF_WISH_HISTORY.indexOf(wishHistoryName) != -1) {
     addFormulaByWishHistoryName(wishHistoryName);
   } else {
-    var message = 'Sheet must be called "' + WISH_TALLY_CHARACTER_EVENT_WISH_SHEET_NAME + '" or "' + WISH_TALLY_PERMANENT_WISH_SHEET_NAME + '" or "' + WISH_TALLY_WEAPON_EVENT_WISH_SHEET_NAME + '" or "' + WISH_TALLY_NOVICE_WISH_SHEET_NAME + '"';
+    var message = 'Sheet must be called "' + WISH_TALLY_CHARACTER_EVENT_WISH_SHEET_NAME + '" or "' + WISH_TALLY_PERMANENT_WISH_SHEET_NAME + '" or "' + WISH_TALLY_WEAPON_EVENT_WISH_SHEET_NAME + '" or "' + WISH_TALLY_CHRONICLED_WISH_SHEET_NAME + '" or "' + WISH_TALLY_NOVICE_WISH_SHEET_NAME + '"';
     var title = 'Invalid Sheet Name';
     SpreadsheetApp.getActiveSpreadsheet().toast(message, title);
   }
 }
 
-function addFormulaByWishHistoryName(name) {
+function addFormulaByWishHistoryName(name, settingsSheet = null) {
   var sheetSource = getSourceDocument();
   if (sheetSource) {
     // Add Language
     var wishHistorySource;
-    var settingsSheet = getSettingsSheet();
+    if (!settingsSheet) {
+      settingsSheet = getSettingsSheet();
+    }
     if (settingsSheet) {
       var languageFound = settingsSheet.getRange(2, 2).getValue();
       wishHistorySource = sheetSource.getSheetByName(WISH_TALLY_WISH_HISTORY_SHEET_NAME+"-"+languageFound);
@@ -162,6 +171,13 @@ function sortWeaponEventWishHistory() {
 */
 function sortNoviceWishHistory() {
   sortWishHistoryByName(WISH_TALLY_NOVICE_WISH_SHEET_NAME);
+}
+
+/**
+* Sort Chronicled Wish History
+*/
+function sortChronicledWishHistory() {
+  sortWishHistoryByName(WISH_TALLY_CHRONICLED_WISH_SHEET_NAME);
 }
 
 function sortWishHistoryByName(sheetName) {

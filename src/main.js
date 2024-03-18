@@ -24,7 +24,10 @@ var dashboardRefreshRange = [
   "K21", // Permanent Total
   "G25", // Weapon 5-Star
   "G26", // Weapon 4-Star
-  "K26" // Weapon Total
+  "K26", // Weapon Total
+  "G30", // Chronicled 5-Star
+  "G31", // Chronicled 4-Star
+  "K31" // Chronicled Total
 ];
 
 /**
@@ -53,8 +56,7 @@ function GET_SPREADSHEET_ID() {
     return spreadsheetId;
 }
 
-function reorderSheets() {
-  var settingsSheet = getSettingsSheet();
+function reorderSheets(settingsSheet) {
   if (settingsSheet) {
     var sheetsToSort = settingsSheet.getRange(28,2,15,1).getValues();
 
@@ -130,16 +132,29 @@ function saveEventsSettings(eventsSheet, settingsSheet) {
 
 function restoreEventsSettings(sheetEvents, settingsSheet) {
   var saveData = settingsSheet.getRange("G4").getValue().split(",");
+  var formulas = sheetEvents.getRange(2,8,saveData.length, 1).getFormulas();
+  var saveInEvents = [];
   for (var ii = 0; ii < saveData.length; ii++) {
     var valueData = saveData[ii];
     if (valueData == "TRUE") {
-      sheetEvents.getRange(2 + ii,8).setValue(true);
+      saveInEvents.push([true])
     } else if (valueData) {
       if (valueData != "") {
-        sheetEvents.getRange(2 + ii,8).setValue(valueData);
+        saveInEvents.push([valueData])
+      } else {
+        saveInEvents.push([null])
       }
+    } else {
+      saveInEvents.push([null])
     }
   }
+  // Override values if formulas exist on the cell.
+  var data = saveInEvents.map(function(row, i) {
+    return row.map(function(col, j) {
+      return formulas[i][j] || col;
+    });
+  });
+  sheetEvents.getRange(2,8,data.length,1).setValues(data);
 }
 
 function saveCollectionSettings(constellationsSheet, settingsSheet, itemsRange, optionsRange) {
@@ -273,9 +288,12 @@ function restorePityCheckerSettings(sheetPityChecker, settingsSheet) {
     // Weapon Wish History
     sheetPityChecker.hideColumns(26)
     sheetPityChecker.showColumns(28)
-    // Novice Wish History
+    // Chronicled Wish History
     sheetPityChecker.hideColumns(38)
     sheetPityChecker.showColumns(40)
+    // Novice Wish History
+    sheetPityChecker.hideColumns(50)
+    sheetPityChecker.showColumns(52)
   } else {
     // Character Event Wish
     sheetPityChecker.showColumns(2)
@@ -286,9 +304,12 @@ function restorePityCheckerSettings(sheetPityChecker, settingsSheet) {
     // Weapon Wish History
     sheetPityChecker.showColumns(26)
     sheetPityChecker.hideColumns(28)
-    // Novice Wish History
+    // Chronicled Wish History
     sheetPityChecker.showColumns(38)
     sheetPityChecker.hideColumns(40)
+    // Novice Wish History
+    sheetPityChecker.showColumns(50)
+    sheetPityChecker.hideColumns(52)
   }
   if (itemNameFor5Star) {
     // Character Event Wish
@@ -300,9 +321,12 @@ function restorePityCheckerSettings(sheetPityChecker, settingsSheet) {
     // Weapon Wish History
     sheetPityChecker.hideColumns(32)
     sheetPityChecker.showColumns(34)
-    // Novice Wish History
+    // Chronicled Wish History
     sheetPityChecker.hideColumns(44)
     sheetPityChecker.showColumns(46)
+    // Novice Wish History
+    sheetPityChecker.hideColumns(56)
+    sheetPityChecker.showColumns(58)
   } else {
     // Character Event Wish
     sheetPityChecker.showColumns(8)
@@ -313,9 +337,12 @@ function restorePityCheckerSettings(sheetPityChecker, settingsSheet) {
     // Weapon Wish History
     sheetPityChecker.showColumns(32)
     sheetPityChecker.hideColumns(34)
-    // Novice Wish History
+    // Chronicled Wish History
     sheetPityChecker.showColumns(44)
     sheetPityChecker.hideColumns(46)
+    // Novice Wish History
+    sheetPityChecker.showColumns(56)
+    sheetPityChecker.hideColumns(58)
   }
 }
 
@@ -344,8 +371,8 @@ function restoreResultsSettings(sheetResults, settingsSheet) {
 }
 
 var quickUpdateRange = [
-  "A2","M2","Y2","AK2", // Banner Images
-  "A3","M3","Y3" // Banner Time
+  "A2","M2","Y2","AK2","AW2", // Banner Images
+  "A3","M3","Y3","AK3" // Banner Time
 ];
 
 function quickUpdate() {
@@ -485,7 +512,7 @@ function quickUpdate() {
     }
   }
   var currentSheet = SpreadsheetApp.getActive().getActiveSheet();
-  reorderSheets();
+  reorderSheets(settingsSheet);
   SpreadsheetApp.getActive().setActiveSheet(currentSheet);
   // Update Settings
   settingsSheet.getRange(9, 7).setValue(false);
@@ -588,7 +615,13 @@ function updateItemsList() {
         }
       }
       
-      var listOfSheets = [WISH_TALLY_CHARACTER_EVENT_WISH_SHEET_NAME,WISH_TALLY_PERMANENT_WISH_SHEET_NAME,WISH_TALLY_WEAPON_EVENT_WISH_SHEET_NAME,WISH_TALLY_NOVICE_WISH_SHEET_NAME];
+      var listOfSheets = [
+        WISH_TALLY_CHARACTER_EVENT_WISH_SHEET_NAME,
+        WISH_TALLY_PERMANENT_WISH_SHEET_NAME,
+        WISH_TALLY_WEAPON_EVENT_WISH_SHEET_NAME,
+        WISH_TALLY_NOVICE_WISH_SHEET_NAME,
+        WISH_TALLY_CHRONICLED_WISH_SHEET_NAME
+      ];
       var listOfSheetsLength = listOfSheets.length;
       // Check if sheet exist
       for (var i = 0; i < listOfSheetsLength; i++) {
@@ -616,7 +649,7 @@ function updateItemsList() {
 
       // Refresh spreadsheet
       for (var i = 0; i < listOfSheetsLength; i++) {
-        addFormulaByWishHistoryName(listOfSheets[i]);
+        addFormulaByWishHistoryName(listOfSheets[i], settingsSheet);
         /*
         var sheetOld = SpreadsheetApp.getActive().getSheetByName(listOfSheets[i]);
         var sheetCopySource = sheetSource.getSheetByName(listOfSheets[i]);
@@ -812,10 +845,10 @@ function updateItemsList() {
         // If exist remove from spreadsheet
         SpreadsheetApp.getActiveSpreadsheet().deleteSheet(placeHolderSheet);
       }
-      
-      reorderSheets();
+
+      reorderSheets(settingsSheet);
       // Bring Pity Checker into view
-      
+
       SpreadsheetApp.getActive().setActiveSheet(sheetPityChecker);
       
       // Update Settings
