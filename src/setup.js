@@ -160,7 +160,7 @@ function migrationV4(settingsSheet) {
   var bold  = SpreadsheetApp.newTextStyle().setBold(true).build();
   var value = SpreadsheetApp.newRichTextValue().setText(text).setTextStyle(text.indexOf(title), title.length, bold).build();
 
-  SpreadsheetApp.getActiveSheet().getRange('D14').setRichTextValue(value).setBackground("#cccccc");
+  settingsSheet.getRange('D14').setRichTextValue(value).setBackground("#cccccc");
 
   settingsSheet.getRange("D41:E41").breakApart();
   settingsSheet.getRange("D41").setValue("Chronicled").setBackground("#cccccc");
