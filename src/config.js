@@ -1,12 +1,12 @@
 /*
- * Version 4.00 made by yippym - 2023-02-57 23:00
+ * Version 4.01 made by yippym - 2023-02-57 23:00
  * https://github.com/Yippy/wish-tally-sheet
  */
 // Wish Tally Const
 var WISH_TALLY_SHEET_SOURCE_REDIRECT_ID = '1Um4vaqyYDRXqpnB6vFcz92lvfW0VGIrevTH7eT8RTtg';
 var WISH_TALLY_SHEET_SUPPORTED_LOCALE = "en_GB";
 var WISH_TALLY_SHEET_TOOLBAR_NAME = "Wish Tally";
-var WISH_TALLY_SHEET_SCRIPT_VERSION = 4.0;
+var WISH_TALLY_SHEET_SCRIPT_VERSION = 4.01;
 var WISH_TALLY_SHEET_SCRIPT_MIGRATION_V4_VERSION = 4.0;
 var WISH_TALLY_SHEET_SCRIPT_IS_ADD_ON = false;
 
@@ -232,8 +232,8 @@ var AUTO_IMPORT_ADDITIONAL_QUERY = [
   "device_type=pc"
 ];
 
-var AUTO_IMPORT_URL = "https://hk4e-api-os.mihoyo.com/event/gacha_info/api/getGachaLog";
-var AUTO_IMPORT_URL_CHINA = "https://hk4e-api.mihoyo.com/event/gacha_info/api/getGachaLog";
+var AUTO_IMPORT_URL = "https://hk4e-api-os.hoyoverse.com/gacha_info/api/getGachaLog";
+var AUTO_IMPORT_URL_CHINA = "https://public-operation-hk4e.mihoyo.com/gacha_info/api/getGachaLog";
 
 
 var AUTO_IMPORT_URL_ERROR_CODE_AUTH_TIMEOUT = -101;

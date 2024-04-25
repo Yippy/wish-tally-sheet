@@ -1,5 +1,5 @@
 /*
- * Version 4.00 made by yippym - 2023-02-57 23:00
+ * Version 4.01 made by yippym - 2023-02-57 23:00
  * https://github.com/Yippy/wish-tally-sheet
  */
 function createWeeklyTrigger(functionName, day, hour, minutes) {
