@@ -1,5 +1,5 @@
 /*
- * Version 4.01 made by yippym - 2023-02-57 23:00
+ * Version 4.02 made by yippym - 2024-08-03 00:50
  * https://github.com/Yippy/wish-tally-sheet
  */
 function getSourceDocument() {
